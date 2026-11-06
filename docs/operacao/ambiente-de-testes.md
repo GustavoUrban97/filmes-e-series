@@ -24,15 +24,15 @@ O script usa as duas contas para confirmar, nas três tabelas, que uma não lê,
 
 ## Testes automáticos
 
-O fluxo [`testes.yml`](../../.github/workflows/testes.yml), do GitHub Actions, roda em cada pull request o teste de isolamento e os testes de interface de [`testes/interface/`](../../testes/interface/), com [Playwright](https://playwright.dev). Eles abrem o site em um navegador de verdade e cobrem login, adicionar títulos, episódios, abas, recomendações, baixar e importar o backup e o layout no celular.
+O fluxo [`testes.yml`](../../.github/workflows/testes.yml), do GitHub Actions, roda em cada pull request o teste de isolamento e os testes de interface de [`testes/interface/`](../../testes/interface/), com [Playwright](https://playwright.dev). Eles abrem o site em um navegador de verdade e cobrem login, adicionar títulos, o botão **+1 episódio**, abas, recomendações, baixar e importar o backup e o layout no celular. A lista de episódios por temporada, com data e nota, ainda não tem teste.
 
 O fluxo não aplica nada no Supabase. Se uma alteração trouxer migração ou mudança na função, aplique-a no projeto de testes antes de abrir o pull request.
 
 As credenciais ficam nos segredos do repositório: `TESTE_A_EMAIL`, `TESTE_A_SENHA`, `TESTE_B_EMAIL` e `TESTE_B_SENHA`. Nunca coloque ali uma senha real, a senha de um banco ou um token do Supabase.
 
-Em uma falha, o resultado fica na aba **Actions**, com capturas de tela. Ela pode vir do TMDB ou de um projeto de testes pausado, então confira isso antes de mexer no código.
+Em uma falha, o resultado fica na aba **Actions**, com capturas de tela nos testes de interface. Ela pode vir do TMDB, inclusive de uma mudança nos resultados dele, ou de um projeto de testes pausado, então confira isso antes de mexer no código. As capturas podem mostrar o e-mail da conta de teste, que é um endereço falso. O envio se limita às imagens, para não publicar o conteúdo dos campos.
 
-Para rodar em uma máquina com Node, preencha as variáveis `TESTE_A_EMAIL` e `TESTE_A_SENHA` e execute:
+Para rodar em uma máquina Windows com Node, preencha as variáveis `TESTE_A_EMAIL` e `TESTE_A_SENHA` e execute:
 
 ```powershell
 npm install

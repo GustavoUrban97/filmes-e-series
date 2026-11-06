@@ -1,4 +1,4 @@
-const { test, expect, semear } = require('./auxiliares');
+const { test, expect, semear, recarregar, esperarSinopse } = require('./auxiliares');
 
 const FILME = { title: 'Filme comum', type: 'movie', status: 'watched', year: 2000, genres: ['Drama'], anime: false };
 const SERIE = { title: 'Série comum', type: 'series', status: 'watching', year: 2010, genres: ['Drama'], anime: false };
@@ -12,7 +12,7 @@ test('adicionar pelo TMDB, dar nota e salvar volta à biblioteca e persiste', as
   await page.click('#botao-adicionar');
   await page.fill('#modal-busca', 'Breaking Bad');
   await expect(page.locator('#previa-titulo')).toHaveText('Breaking Bad');
-  await expect(page.locator('#previa-sinopse')).not.toHaveText('Carregando sinopse…');
+  await esperarSinopse(page);
   await page.click('#acao-visto');
   await expect(page).toHaveURL(/#\/titulo\//);
 
@@ -23,7 +23,7 @@ test('adicionar pelo TMDB, dar nota e salvar volta à biblioteca e persiste', as
 
   await expect(page).toHaveURL(/#\/$/);
   await expect(page.locator('#tela-biblioteca')).toBeVisible();
-  await page.reload();
+  await recarregar(page);
   const cartaz = page.locator('#lista .cartaz').filter({ hasText: 'Breaking Bad' });
   await expect(cartaz.locator('.selo-nota')).toContainText('5,0');
   await expect(cartaz.locator('.cartaz-citacao')).toContainText('Anotação de teste');
@@ -88,7 +88,7 @@ test('+1 episódio avança, grava e aparece no Diário', async ({ page }) => {
   await item.getByRole('button', { name: /mais um episódio/i }).click();
   await expect(item.locator('.continuar-progresso')).toHaveText('Visto até T1 · E2');
 
-  await page.reload();
+  await recarregar(page);
   await expect(page.locator('.continuar-progresso')).toHaveText('Visto até T1 · E2');
 
   await page.click('#nav-diario');
@@ -100,10 +100,18 @@ test('dois cliques em botões +1 do mesmo título contam um episódio', async ({
   await semear(page, [SERIE]);
   const botoes = page.getByRole('button', { name: /mais um episódio/i });
   await expect(botoes).toHaveCount(2);
+
+  /* O banco ignora gravações repetidas, então só a contagem de pedidos revela um clique duplo. */
+  let gravacoes = 0;
+  page.on('request', (pedido) => {
+    if (pedido.method() === 'POST' && pedido.url().includes('/rest/v1/episode_views')) gravacoes++;
+  });
   await page.evaluate(() => {
     document.querySelectorAll('[data-mais-um]').forEach((botao) => botao.click());
   });
   await expect(page.locator('.continuar-progresso')).toHaveText('Visto até T1 · E1');
+  await expect(page.locator('#mensagem')).toContainText('E1 marcado');
+  expect(gravacoes).toBe(1);
   const total = await page.evaluate(() => window.Store.listarVistas().length);
   expect(total).toBe(1);
 });
@@ -128,16 +136,33 @@ test('a caixa É anime é mantida depois de salvar', async ({ page }) => {
   await page.check('#det-anime');
   await page.click('#det-salvar');
   await expect(page.locator('#aba-animes')).toHaveText('Animes (1)');
-  await page.reload();
+  await recarregar(page);
   await expect(page.locator('#aba-series')).toHaveText('Séries (0)');
 });
 
 test('excluir um título pede confirmação e o remove', async ({ page }) => {
   await semear(page, [FILME]);
   await page.click('#lista .cartaz-titulo');
-  page.once('dialog', (dialogo) => dialogo.accept());
+
+  /* Recusar mantém o título. */
+  let pedidos = 0;
+  page.once('dialog', (dialogo) => {
+    pedidos++;
+    dialogo.dismiss();
+  });
+  await page.click('#det-remover');
+  await expect.poll(() => pedidos).toBe(1);
+  await expect(page).toHaveURL(/#\/titulo\//);
+
+  page.once('dialog', (dialogo) => {
+    pedidos++;
+    dialogo.accept();
+  });
   await page.click('#det-remover');
   await expect(page.locator('#vazio')).toBeVisible();
-  await page.reload();
+  expect(pedidos).toBe(2);
+
+  await recarregar(page);
+  await expect(page.locator('#vazio')).toBeVisible();
   await expect(titulosNaGrade(page)).toHaveCount(0);
 });

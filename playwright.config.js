@@ -5,6 +5,7 @@ const { defineConfig } = require('@playwright/test');
 module.exports = defineConfig({
   testDir: 'testes/interface',
   workers: 1,
+  forbidOnly: Boolean(process.env.CI),
   timeout: 60000,
   expect: { timeout: 15000 },
   use: {

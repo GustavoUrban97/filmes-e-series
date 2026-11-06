@@ -18,18 +18,23 @@ jobs:
   testes:
     name: Isolamento e interface
     runs-on: windows-latest
-    env:
-      TESTE_A_EMAIL: ${{ secrets.TESTE_A_EMAIL }}
-      TESTE_A_SENHA: ${{ secrets.TESTE_A_SENHA }}
-      TESTE_B_EMAIL: ${{ secrets.TESTE_B_EMAIL }}
-      TESTE_B_SENHA: ${{ secrets.TESTE_B_SENHA }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
       - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 22
-      - name: Criar as credenciais de teste
+      # Instala antes de qualquer credencial existir, sem rodar scripts de pacotes.
+      - name: Instalar o Playwright
+        run: |
+          npm install --no-audit --no-fund --ignore-scripts
+          npx playwright install chromium
+      - name: Isolamento entre contas
         shell: powershell
+        env:
+          TESTE_A_EMAIL: ${{ secrets.TESTE_A_EMAIL }}
+          TESTE_A_SENHA: ${{ secrets.TESTE_A_SENHA }}
+          TESTE_B_EMAIL: ${{ secrets.TESTE_B_EMAIL }}
+          TESTE_B_SENHA: ${{ secrets.TESTE_B_SENHA }}
         run: |
           @(
             'SUPABASE_URL=https://xjcfkdbrmxsnyhrtshva.supabase.co'
@@ -39,19 +44,19 @@ jobs:
             "TESTE_B_EMAIL=$env:TESTE_B_EMAIL"
             "TESTE_B_SENHA=$env:TESTE_B_SENHA"
           ) | Out-File .env.teste -Encoding utf8
-      - name: Isolamento entre contas
-        shell: powershell
-        run: scripts/testar-isolamento.ps1
-      - name: Instalar o Playwright
-        run: |
-          npm install --no-audit --no-fund
-          npx playwright install chromium
+          try { scripts/testar-isolamento.ps1 } finally { Remove-Item .env.teste -Force }
       - name: Testes de interface
+        env:
+          TESTE_A_EMAIL: ${{ secrets.TESTE_A_EMAIL }}
+          TESTE_A_SENHA: ${{ secrets.TESTE_A_SENHA }}
         run: npx playwright test
-      - name: Guardar os resultados
+      # Só as imagens: outros arquivos de resultado podem guardar o conteúdo dos campos,
+      # e o que é enviado aqui pode ser baixado por qualquer pessoa conectada ao GitHub.
+      - name: Guardar as capturas de tela
         if: failure()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
-          name: resultados-dos-testes
-          path: test-results/
+          name: capturas-de-tela
+          path: test-results/**/*.png
           retention-days: 7
+          if-no-files-found: ignore
