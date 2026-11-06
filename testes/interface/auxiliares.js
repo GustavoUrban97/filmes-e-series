@@ -75,4 +75,53 @@ async function esperarSinopse(page) {
   await expect(page.locator('#previa-sinopse')).not.toHaveText(/^$|Carregando|Não foi possível|não tem sinopse/);
 }
 
-module.exports = { test: testeComConta, testeSemConta: test, expect, semear, recarregar, esperarSinopse, EMAIL };
+function candidato(id, title, type, anime) {
+  return { id, title, type, year: 2020, genres: ['Drama'], poster: null, vote: 8, anime };
+}
+
+/* Respostas fixas para a referência 1429: filtros e layout são testados sem depender do TMDB. */
+async function simularRecomendacoes(page) {
+  await page.route('**/functions/v1/swift-handler', async (rota) => {
+    const cors = {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Headers': '*',
+      'Access-Control-Allow-Methods': 'POST, OPTIONS'
+    };
+    if (rota.request().method() === 'OPTIONS') {
+      await rota.fulfill({ status: 204, headers: cors });
+      return;
+    }
+    await rota.fulfill({
+      status: 200,
+      headers: cors,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        recomendacoes: {
+          referencias: [{
+            id: 1429,
+            type: 'series',
+            resultados: [
+              candidato(1429, 'Nome traduzido da própria referência', 'series', true),
+              candidato(11, 'Série sugerida', 'series', false),
+              candidato(12, 'Anime sugerido', 'series', true),
+              candidato(13, 'Filme de anime sugerido', 'movie', true),
+              candidato(14, 'Filme sugerido', 'movie', false)
+            ]
+          }],
+          generos: []
+        }
+      })
+    });
+  });
+}
+
+module.exports = {
+  test: testeComConta,
+  testeSemConta: test,
+  expect,
+  semear,
+  recarregar,
+  esperarSinopse,
+  simularRecomendacoes,
+  EMAIL
+};

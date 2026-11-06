@@ -1,4 +1,4 @@
-const { test, expect, semear } = require('./auxiliares');
+const { test, expect, semear, simularRecomendacoes } = require('./auxiliares');
 
 /* Cada tela tem um sinal de que terminou de desenhar: só depois dele a largura vale. */
 const TELAS = [
@@ -12,6 +12,7 @@ const LARGURAS = [375, 860, 1280];
 
 for (const largura of LARGURAS) {
   test(`sem rolagem lateral em ${largura} px`, async ({ page }) => {
+    await simularRecomendacoes(page);
     await semear(page, [
       { title: 'Um título com o nome bem comprido para testar', type: 'series', status: 'watching', genres: ['Drama'], anime: true },
       { title: 'Na fila com um nome também bem comprido', type: 'movie', status: 'planned', genres: ['Drama'] },
