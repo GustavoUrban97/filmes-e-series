@@ -1,5 +1,11 @@
 # Histórico de mudanças
 
+## 3.0.0 - 2026-11-06
+
+- Nova identidade visual, Sala escura, com tema único escuro
+- Pôster em destaque nos cards, em uma grade de duas colunas em telas largas
+- Fontes Fraunces e Inter servidas pelo próprio site, e novo ícone
+
 ## 2.3.0 - 2026-11-06
 
 - Botão **+1 episódio** nas séries com a situação Assistindo

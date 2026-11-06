@@ -141,14 +141,21 @@
     return partes.join(', ');
   }
 
+  /* Sem imagem, o espaço do pôster mostra a inicial do título. */
+  function criarPosterVazio(item) {
+    var vazio = criar('div', 'item-poster', Array.from(item.title)[0].toLocaleUpperCase('pt-BR'));
+    vazio.setAttribute('aria-hidden', 'true');
+    return vazio;
+  }
+
   function criarPoster(item) {
-    if (!item.posterUrl) return criar('div', 'item-poster');
+    if (!item.posterUrl) return criarPosterVazio(item);
     var poster = criar('img', 'item-poster');
-    poster.src = item.posterUrl.replace('/w92/', '/w154/');
+    poster.src = item.posterUrl.replace('/w92/', '/w185/');
     poster.alt = '';
     poster.loading = 'lazy';
     poster.addEventListener('error', function () {
-      poster.replaceWith(criar('div', 'item-poster'));
+      poster.replaceWith(criarPosterVazio(item));
     });
     return poster;
   }
@@ -172,8 +179,6 @@
       nota.appendChild(estrelas);
       nota.appendChild(criar('span', '', formatarEstrelas(item.rating)));
       li.appendChild(nota);
-    } else {
-      li.appendChild(criar('div'));
     }
 
     var meta = criar('div', 'item-meta');

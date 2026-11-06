@@ -15,7 +15,7 @@ Site pessoal, com login, para registrar filmes e séries: o que você já assist
 - Filtros por tipo e situação, e cinco opções de ordenação
 - Resumo com totais e nota média
 - Backup em JSON, para exportar e importar
-- Tema claro e escuro automático, com layout adaptado ao celular
+- [Identidade visual Sala escura](docs/identidade-visual.md), com layout adaptado ao celular
 
 ## Onde ficam os dados
 
@@ -40,7 +40,8 @@ js/app.js            Interface: login, lista, filtros e formulário
 supabase/schema.sql  Tabela e regras de acesso
 supabase/migracoes/  Mudanças para bancos já criados
 supabase/functions/  Função que consulta o TMDB
-img/                 Logo do TMDB
+img/                 Ícone do site e logo do TMDB
+fonts/               Fontes do site e suas licenças
 docs/                Documentação
 ```
 
@@ -52,6 +53,7 @@ Dados e pôsteres de filmes e séries: [TMDB](https://www.themoviedb.org). Este 
 
 - [Configuração do Supabase](docs/configuracao-supabase.md)
 - [Guia de uso](docs/guia-de-uso.md)
+- [Identidade visual](docs/identidade-visual.md)
 - [Formato dos dados](docs/formato-dos-dados.md)
 - [Publicação](docs/publicacao.md)
 - [Histórico de mudanças](CHANGELOG.md)
