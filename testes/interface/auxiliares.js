@@ -60,6 +60,15 @@ const testeComConta = test.extend({
   page: async ({ page }, usar) => {
     const erros = [];
     page.on('pageerror', (erro) => erros.push(erro.message));
+    /* A captura de tela só mostra a mensagem genérica: o motivo real fica no registro da execução. */
+    page.on('response', async (resposta) => {
+      if (!resposta.url().includes('/functions/v1/') || resposta.ok()) return;
+      const corpo = await resposta.text().catch(() => '');
+      console.log(`Função respondeu ${resposta.status()}: ${corpo.slice(0, 300)}`);
+    });
+    page.on('requestfailed', (pedido) => {
+      if (pedido.url().includes('/functions/v1/')) console.log(`Pedido à função falhou: ${pedido.failure().errorText}`);
+    });
     await page.goto('/');
     await expect(page.locator('#carregando')).toBeHidden();
     await expect(page.locator('#topo')).toBeVisible();
