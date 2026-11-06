@@ -34,8 +34,18 @@
     temporizadorMensagem = setTimeout(function () { mensagem.hidden = true; }, 4000);
   }
 
-  function atualizarAvisoArmazenamento() {
-    el('aviso-armazenamento').hidden = Store.disponivel();
+  function mostrarTela(tela) {
+    el('carregando').hidden = tela !== 'carregando';
+    el('tela-login').hidden = tela !== 'login';
+    el('tela-app').hidden = tela !== 'app';
+    el('rodape').hidden = tela !== 'app';
+    el('topo-acoes').hidden = tela !== 'app';
+  }
+
+  function mostrarAvisoGeral(texto, comRepeticao) {
+    el('aviso-geral-texto').textContent = texto || '';
+    el('aviso-geral').hidden = !texto;
+    el('aviso-geral-acao').hidden = !comRepeticao;
   }
 
   function semAcento(texto) {
@@ -193,8 +203,6 @@
       acao.textContent = comFiltro ? 'Limpar filtros' : 'Adicionar título';
       acao.onclick = comFiltro ? limparFiltros : function () { abrirFormulario(null); };
     }
-
-    atualizarAvisoArmazenamento();
   }
 
   function atualizarCamposCondicionais() {
@@ -235,10 +243,12 @@
     formulario.elements.title.focus();
   }
 
-  function aoEnviar(evento) {
+  async function aoEnviar(evento) {
     evento.preventDefault();
     var campos = formulario.elements;
-    var resultado = Store.salvar({
+    var botao = formulario.querySelector('[type="submit"]');
+    botao.disabled = true;
+    var resultado = await Store.salvar({
       id: idEmEdicao,
       title: campos.title.value,
       type: campos.type.value,
@@ -250,6 +260,7 @@
       genres: campos.genres.value,
       notes: campos.notes.value
     });
+    botao.disabled = false;
 
     if (resultado.erro) {
       mostrarErro(resultado.erro);
@@ -258,16 +269,18 @@
 
     dialogo.close();
     renderizar();
-    avisar(resultado.persistido
-      ? 'Salvo: ' + resultado.item.title
-      : 'Não foi possível gravar no navegador. Exporte um backup antes de fechar a página.');
+    avisar('Salvo: ' + resultado.item.title);
   }
 
-  function excluirItem(item) {
+  async function excluirItem(item) {
     if (!window.confirm('Excluir "' + item.title + '"? Esta ação não pode ser desfeita.')) return;
-    var persistido = Store.remover(item.id);
+    var resultado = await Store.remover(item.id);
+    if (resultado.erro) {
+      avisar(resultado.erro);
+      return;
+    }
     renderizar();
-    avisar(persistido ? 'Excluído: ' + item.title : 'Não foi possível gravar a exclusão no navegador.');
+    avisar('Excluído: ' + item.title);
   }
 
   function exportarBackup() {
@@ -293,25 +306,133 @@
 
     var leitor = new FileReader();
     leitor.onerror = function () { avisar('Não foi possível ler o arquivo.'); };
-    leitor.onload = function () {
-      var resultado = Store.importar(String(leitor.result));
-      if (resultado.erro) {
-        avisar(resultado.erro);
-        return;
-      }
+    leitor.onload = async function () {
+      var botao = el('botao-importar');
+      botao.disabled = true;
+      var resultado = await Store.importar(String(leitor.result));
+      botao.disabled = false;
       renderizar();
-      var partes = [
-        plural(resultado.adicionados, 'adicionado', 'adicionados'),
-        plural(resultado.atualizados, 'atualizado', 'atualizados')
-      ];
-      if (resultado.ignorados) partes.push(plural(resultado.ignorados, 'inválido ignorado', 'inválidos ignorados'));
-      avisar(resultado.persistido
-        ? 'Backup importado: ' + partes.join(', ') + '.'
-        : 'Importado, mas não foi possível gravar no navegador.');
+      avisar(resultado.erro || 'Backup importado: ' + resumoImportacao(resultado) + '.');
     };
     leitor.readAsText(arquivo);
   }
 
+  function resumoImportacao(resultado) {
+    var partes = [
+      plural(resultado.adicionados, 'adicionado', 'adicionados'),
+      plural(resultado.atualizados, 'atualizado', 'atualizados')
+    ];
+    if (resultado.ignorados) partes.push(plural(resultado.ignorados, 'inválido ignorado', 'inválidos ignorados'));
+    return partes.join(', ');
+  }
+
+  function mostrarAvisoListaAntiga() {
+    var total = Store.lerListaAntiga().length;
+    el('aviso-antiga').hidden = total === 0;
+    el('aviso-antiga-texto').textContent = 'Encontramos ' + plural(total, 'título salvo', 'títulos salvos') +
+      ' neste navegador pela versão anterior do site. Enviar para o banco de dados?';
+  }
+
+  async function enviarListaAntiga() {
+    var botao = el('antiga-enviar');
+    botao.disabled = true;
+    var resultado = await Store.enviarListaAntiga();
+    botao.disabled = false;
+    mostrarAvisoListaAntiga();
+    renderizar();
+    avisar(resultado.erro || 'Lista enviada: ' + resumoImportacao(resultado) + '.');
+  }
+
+  function apagarListaAntiga() {
+    if (!window.confirm('Apagar a lista antiga deste navegador sem enviá-la ao banco? Esta ação não pode ser desfeita.')) return;
+    Store.apagarListaAntiga();
+    mostrarAvisoListaAntiga();
+  }
+
+  async function aoEntrar(evento) {
+    evento.preventDefault();
+    var campos = el('formulario-login').elements;
+    var erro = el('login-erro');
+    var email = campos.email.value.trim();
+    if (!email || !campos.senha.value) {
+      erro.textContent = 'Informe o e-mail e a senha.';
+      erro.hidden = false;
+      return;
+    }
+
+    var botao = el('botao-entrar');
+    botao.disabled = true;
+    erro.hidden = true;
+    var resultado = await Store.entrar(email, campos.senha.value);
+    botao.disabled = false;
+    if (resultado.erro) {
+      erro.textContent = resultado.erro;
+      erro.hidden = false;
+      return;
+    }
+    campos.senha.value = '';
+    /* A troca de tela acontece em aoMudarUsuario, avisado pelo próprio Supabase. */
+  }
+
+  async function carregarLista() {
+    mostrarAvisoGeral('');
+    mostrarTela('carregando');
+    var resultado = await Store.carregar();
+    if (resultado.erro) {
+      mostrarTela('nenhuma');
+      el('topo-acoes').hidden = false;
+      el('botao-adicionar').hidden = true;
+      mostrarAvisoGeral(resultado.erro, true);
+      return;
+    }
+    el('botao-adicionar').hidden = false;
+    mostrarTela('app');
+    mostrarAvisoListaAntiga();
+    renderizar();
+  }
+
+  /* O Supabase repete o aviso de sessão ao voltar para a aba; só recarrega se a conta mudou. */
+  var idUsuarioAtual = null;
+
+  function aoMudarUsuario(usuario) {
+    var id = usuario ? usuario.id : null;
+    if (id === idUsuarioAtual) return;
+    idUsuarioAtual = id;
+
+    if (id) {
+      carregarLista();
+    } else {
+      if (dialogo.open) dialogo.close();
+      lista.textContent = '';
+      mostrarAvisoGeral('');
+      mostrarTela('login');
+    }
+  }
+
+  async function iniciar() {
+    if (!Store.iniciar()) {
+      mostrarTela('nenhuma');
+      mostrarAvisoGeral(Store.configurado()
+        ? 'Não foi possível carregar o site. Verifique a internet e recarregue a página.'
+        : 'O site ainda não foi conectado ao banco de dados. Preencha js/config.js.');
+      return;
+    }
+
+    Store.aoMudarSessao(aoMudarUsuario);
+    try {
+      var usuario = await Store.usuarioAtual();
+      if (!usuario) mostrarTela('login');
+      aoMudarUsuario(usuario);
+    } catch (e) {
+      mostrarTela('login');
+    }
+  }
+
+  el('formulario-login').addEventListener('submit', aoEntrar);
+  el('botao-sair').addEventListener('click', function () { Store.sair(); });
+  el('aviso-geral-acao').addEventListener('click', carregarLista);
+  el('antiga-enviar').addEventListener('click', enviarListaAntiga);
+  el('antiga-apagar').addEventListener('click', apagarListaAntiga);
   el('botao-adicionar').addEventListener('click', function () { abrirFormulario(null); });
   el('botao-cancelar').addEventListener('click', function () { dialogo.close(); });
   el('botao-exportar').addEventListener('click', exportarBackup);
@@ -325,6 +446,5 @@
     filtro.addEventListener('change', renderizar);
   });
 
-  Store.carregar();
-  renderizar();
+  iniciar();
 })();

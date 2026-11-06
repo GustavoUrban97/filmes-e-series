@@ -1,5 +1,12 @@
 # Histórico de mudanças
 
+## 2.0.0 - 2026-11-06
+
+- Login com e-mail e senha, com cadastro fechado
+- Títulos salvos em banco de dados no Supabase, em vez do navegador
+- Regras de acesso no banco, para cada conta alcançar só os próprios títulos
+- Aviso para enviar ao banco a lista salva no navegador pela versão anterior
+
 ## 1.0.0 - 2026-11-05
 
 Primeira versão.

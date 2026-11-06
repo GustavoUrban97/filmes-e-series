@@ -1,50 +1,46 @@
 # Filmes e Séries
 
-Site pessoal para registrar filmes e séries: o que você já assistiu, está assistindo e quer ver.
-
-**Acesse:** https://gustavourban97.github.io/filmes-e-series/
+Site pessoal, com login, para registrar filmes e séries: o que você já assistiu, está assistindo e quer ver.
 
 ## Funcionalidades
 
+- Login com e-mail e senha, com cadastro fechado
+- Lista salva em banco de dados, disponível em qualquer aparelho
 - Cadastro de filmes e séries, com situação, ano, temporadas vistas, data, nota de 1 a 10, gêneros e anotações
 - Edição e exclusão de títulos
 - Busca por título, gênero ou anotação, sem diferenciar acentos
 - Filtros por tipo e situação, e cinco opções de ordenação
 - Resumo com totais e nota média
-- Backup em JSON, para exportar, importar e levar a lista a outro aparelho
+- Backup em JSON, para exportar e importar
 - Tema claro e escuro automático, com layout adaptado ao celular
 
 ## Onde ficam os dados
 
-Os dados ficam **somente no navegador** de quem usa o site (`localStorage`). Nada é enviado ao GitHub nem a outro servidor, então a sua lista não aparece no repositório, mesmo ele sendo público.
+Os títulos ficam em um banco PostgreSQL no [Supabase](https://supabase.com). Só uma conta conectada acessa as próprias linhas, regra aplicada pelo próprio banco com Row Level Security. Sem login, a página mostra apenas a tela de entrada, e a tabela não responde com nenhum dado.
 
-Isso também significa que:
-
-- a lista não sincroniza sozinha entre aparelhos;
-- limpar os dados do navegador apaga a lista, a menos que você tenha um backup.
-
-Veja como se proteger disso no [guia de uso](docs/guia-de-uso.md#backup).
+O navegador guarda apenas a sessão de login.
 
 ## Rodar localmente
 
-O projeto não tem dependências nem etapa de build. Baixe o repositório e abra o `index.html` no navegador.
+O projeto não tem dependências nem etapa de build, mas precisa ser servido por um servidor local (`http://localhost`), e não aberto direto do disco.
 
-```bash
-git clone https://github.com/GustavoUrban97/filmes-e-series.git
-```
+Antes de usar, siga a [configuração do Supabase](docs/configuracao-supabase.md).
 
 ## Estrutura
 
 ```text
-index.html       Estrutura da página
-css/styles.css   Estilos e temas
-js/store.js      Dados: validação, armazenamento e backup
-js/app.js        Interface: lista, filtros e formulário
-docs/            Documentação
+index.html           Estrutura da página
+css/styles.css       Estilos e temas
+js/config.js         Endereço e chave pública do Supabase
+js/store.js          Dados: login, validação, banco e backup
+js/app.js            Interface: login, lista, filtros e formulário
+supabase/schema.sql  Tabela e regras de acesso
+docs/                Documentação
 ```
 
 ## Documentação
 
+- [Configuração do Supabase](docs/configuracao-supabase.md)
 - [Guia de uso](docs/guia-de-uso.md)
 - [Formato dos dados](docs/formato-dos-dados.md)
 - [Publicação](docs/publicacao.md)

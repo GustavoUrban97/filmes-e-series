@@ -6,6 +6,7 @@
   <title>Filmes e Séries</title>
   <meta name="description" content="Registro pessoal de filmes e séries assistidos.">
   <meta name="color-scheme" content="light dark">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -14,12 +15,42 @@
       <h1>Filmes e Séries</h1>
       <p class="subtitulo">O que você já viu, está vendo e quer ver.</p>
     </div>
-    <button type="button" class="botao botao-primario" id="botao-adicionar">Adicionar título</button>
+    <div class="topo-acoes" id="topo-acoes" hidden>
+      <button type="button" class="botao botao-primario" id="botao-adicionar">Adicionar título</button>
+      <button type="button" class="botao" id="botao-sair">Sair</button>
+    </div>
   </header>
 
-  <main>
-    <div class="aviso" id="aviso-armazenamento" role="alert" hidden>
-      Este navegador está bloqueando o armazenamento local. O que você adicionar agora será perdido ao fechar a página.
+  <p class="carregando" id="carregando" role="status">Carregando…</p>
+
+  <div class="aviso" id="aviso-geral" role="alert" hidden>
+    <p id="aviso-geral-texto"></p>
+    <button type="button" class="botao" id="aviso-geral-acao" hidden>Tentar novamente</button>
+  </div>
+
+  <section class="login" id="tela-login" aria-labelledby="login-titulo" hidden>
+    <form id="formulario-login" novalidate>
+      <h2 id="login-titulo">Entrar</h2>
+      <p class="erro" id="login-erro" role="alert" hidden></p>
+      <label class="campo">
+        <span>E-mail</span>
+        <input type="email" name="email" autocomplete="username" required>
+      </label>
+      <label class="campo">
+        <span>Senha</span>
+        <input type="password" name="senha" autocomplete="current-password" required>
+      </label>
+      <button type="submit" class="botao botao-primario" id="botao-entrar">Entrar</button>
+    </form>
+  </section>
+
+  <main id="tela-app" hidden>
+    <div class="aviso aviso-neutro" id="aviso-antiga" hidden>
+      <p id="aviso-antiga-texto"></p>
+      <div class="aviso-acoes">
+        <button type="button" class="botao botao-primario" id="antiga-enviar">Enviar para o banco</button>
+        <button type="button" class="botao" id="antiga-apagar">Apagar do navegador</button>
+      </div>
     </div>
 
     <section aria-label="Resumo">
@@ -70,10 +101,10 @@
     </section>
   </main>
 
-  <footer class="rodape">
+  <footer class="rodape" id="rodape" hidden>
     <div>
       <h2>Seus dados</h2>
-      <p>Tudo fica salvo só neste navegador. Exporte um backup de vez em quando e use o mesmo arquivo para levar a lista a outro aparelho.</p>
+      <p>Sua lista fica salva no banco de dados e acompanha a sua conta em qualquer aparelho. Exporte um backup de vez em quando para ter uma cópia sua.</p>
     </div>
     <div class="rodape-acoes">
       <button type="button" class="botao" id="botao-exportar">Exportar backup</button>
@@ -163,6 +194,8 @@
 
   <div class="mensagem" id="mensagem" role="status" hidden></div>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.118.0/dist/umd/supabase.js" integrity="sha384-TcHRA3zBbn+Lexh5n+Oil4guNPOS3rjNDpGRAN46u/s/mB2IZ50ceC6TYDU2yvgK" crossorigin="anonymous"></script>
+  <script src="js/config.js"></script>
   <script src="js/store.js"></script>
   <script src="js/app.js"></script>
 </body>

@@ -1,5 +1,9 @@
 # Guia de uso
 
+## Entrar e sair
+
+Entre com o seu e-mail e a sua senha. O login continua ativo neste aparelho até você clicar em **Sair**.
+
 ## Adicionar um título
 
 1. Clique em **Adicionar título**.
@@ -29,7 +33,7 @@ Use os botões **Editar** e **Excluir** de cada título. A exclusão pede confir
 
 ## Backup
 
-A lista fica salva apenas no navegador que você está usando. Ela é perdida se você limpar os dados do site, e navegação anônima não a mantém depois de fechar a janela.
+A lista fica no banco de dados, e o backup é uma cópia extra sob o seu controle.
 
 **Exportar:** clique em **Exportar backup**, no fim da página, e guarde o arquivo `.json` em um lugar seguro.
 
@@ -42,6 +46,10 @@ A lista fica salva apenas no navegador que você está usando. Ela é perdida se
 
 Por causa dessa junção, **um título excluído volta** se você importar um backup antigo que ainda o contém.
 
+## Lista salva na versão anterior
+
+Se este navegador ainda tiver títulos da versão anterior do site, um aviso aparece depois do login. Escolha **Enviar para o banco** para levá-los à sua conta ou **Apagar do navegador** para descartá-los. O aviso só aparece no mesmo endereço em que a lista foi salva.
+
 ## Usar em mais de um aparelho
 
-Não há sincronização automática. Para levar a lista a outro aparelho, exporte o backup em um e importe no outro.
+Entre com a mesma conta. Se a lista estiver aberta em dois aparelhos, recarregue a página para ver o que foi alterado no outro.

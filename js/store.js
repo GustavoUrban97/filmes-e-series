@@ -1,19 +1,24 @@
-/* Dados: validação, persistência no localStorage e backup em JSON. Não toca no DOM. */
+/* Dados: login, validação, leitura e gravação no Supabase e backup em JSON. Não toca no DOM. */
 (function () {
   'use strict';
 
-  var CHAVE = 'filmes-e-series:v1';
+  var TABELA = 'titles';
+  var CHAVE_LOCAL_ANTIGA = 'filmes-e-series:v1';
   var APP = 'filmes-e-series';
   var VERSAO = 1;
   var ANO_MINIMO = 1888;
+  var TAMANHO_PAGINA = 1000;
+  var TAMANHO_LOTE = 500;
+  var UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+  var ERRO_CONEXAO = 'Não foi possível acessar o banco de dados. Verifique a internet. ' +
+    'Se o site ficou dias sem uso, o projeto pode estar pausado no Supabase.';
 
   var TIPOS = ['movie', 'series'];
   var SITUACOES = ['watched', 'watching', 'planned'];
 
-  function novoId() {
-    if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
-    return 'id-' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 10);
-  }
+  var cliente = null;
+  var itens = [];
 
   function inteiroOuNulo(valor) {
     if (valor === null || valor === undefined || valor === '') return null;
@@ -68,7 +73,7 @@
     var agora = new Date().toISOString();
     return {
       item: {
-        id: entrada.id ? String(entrada.id) : novoId(),
+        id: UUID.test(String(entrada.id)) ? String(entrada.id) : crypto.randomUUID(),
         title: titulo,
         type: entrada.type,
         status: entrada.status,
@@ -84,45 +89,101 @@
     };
   }
 
-  function validarLista(lista) {
-    var itens = [];
-    var ignorados = 0;
-    (Array.isArray(lista) ? lista : []).forEach(function (entrada) {
-      var resultado = normalizar(entrada);
-      if (resultado.item) itens.push(resultado.item);
-      else ignorados++;
+  function paraLinha(item) {
+    return {
+      id: item.id,
+      title: item.title,
+      type: item.type,
+      status: item.status,
+      year: item.year,
+      seasons: item.seasons,
+      rating: item.rating,
+      watched_on: item.watchedOn,
+      genres: item.genres,
+      notes: item.notes,
+      created_at: item.createdAt,
+      updated_at: item.updatedAt
+    };
+  }
+
+  function daLinha(linha) {
+    return {
+      id: linha.id,
+      title: linha.title,
+      type: linha.type,
+      status: linha.status,
+      year: linha.year,
+      seasons: linha.seasons,
+      rating: linha.rating,
+      watchedOn: linha.watched_on,
+      genres: linha.genres,
+      notes: linha.notes,
+      createdAt: linha.created_at,
+      updatedAt: linha.updated_at
+    };
+  }
+
+  function configurado() {
+    var c = window.APP_CONFIG || {};
+    return Boolean(c.supabaseUrl && c.supabasePublishableKey);
+  }
+
+  function iniciar() {
+    if (cliente) return true;
+    if (!configurado() || !window.supabase) return false;
+    cliente = window.supabase.createClient(window.APP_CONFIG.supabaseUrl, window.APP_CONFIG.supabasePublishableKey);
+    return true;
+  }
+
+  async function usuarioAtual() {
+    var resposta = await cliente.auth.getSession();
+    return resposta.data.session ? resposta.data.session.user : null;
+  }
+
+  function aoMudarSessao(callback) {
+    cliente.auth.onAuthStateChange(function (evento, sessao) {
+      /* O setTimeout evita chamar o Supabase de dentro do próprio callback de autenticação. */
+      setTimeout(function () { callback(sessao ? sessao.user : null); }, 0);
     });
-    return { itens: itens, ignorados: ignorados };
   }
 
-  var itens = [];
-  var armazenamentoDisponivel = true;
-
-  function carregar() {
+  async function entrar(email, senha) {
     try {
-      var bruto = localStorage.getItem(CHAVE);
-      itens = bruto ? validarLista(JSON.parse(bruto).items).itens : [];
-      localStorage.setItem(CHAVE + ':teste', '1');
-      localStorage.removeItem(CHAVE + ':teste');
-      armazenamentoDisponivel = true;
+      var resposta = await cliente.auth.signInWithPassword({ email: email, password: senha });
+      if (!resposta.error) return {};
+      if (resposta.error.status === 400) return { erro: 'E-mail ou senha incorretos.' };
+      if (resposta.error.status === 429) return { erro: 'Muitas tentativas. Aguarde um pouco e tente de novo.' };
+      return { erro: ERRO_CONEXAO };
     } catch (e) {
-      armazenamentoDisponivel = false;
-    }
-    return armazenamentoDisponivel;
-  }
-
-  function persistir() {
-    try {
-      localStorage.setItem(CHAVE, JSON.stringify({ version: VERSAO, items: itens }));
-      armazenamentoDisponivel = true;
-      return true;
-    } catch (e) {
-      armazenamentoDisponivel = false;
-      return false;
+      return { erro: ERRO_CONEXAO };
     }
   }
 
-  function salvar(entrada) {
+  async function sair() {
+    itens = [];
+    /* Encerra só este aparelho, inclusive se o servidor estiver fora do ar. */
+    await cliente.auth.signOut({ scope: 'local' });
+  }
+
+  async function carregar() {
+    try {
+      var todos = [];
+      for (var inicio = 0; ; inicio += TAMANHO_PAGINA) {
+        var resposta = await cliente.from(TABELA).select('*')
+          .order('id')
+          .range(inicio, inicio + TAMANHO_PAGINA - 1);
+        if (resposta.error) return { erro: ERRO_CONEXAO };
+        todos = todos.concat(resposta.data);
+        if (resposta.data.length < TAMANHO_PAGINA) break;
+      }
+      itens = todos.map(daLinha);
+      return {};
+    } catch (e) {
+      return { erro: ERRO_CONEXAO };
+    }
+  }
+
+  async function salvar(entrada) {
     var existente = entrada.id ? obter(entrada.id) : null;
     var resultado = normalizar(Object.assign({}, entrada, {
       createdAt: existente ? existente.createdAt : undefined,
@@ -130,15 +191,27 @@
     }));
     if (resultado.erro) return resultado;
 
-    if (existente) itens[itens.indexOf(existente)] = resultado.item;
-    else itens.push(resultado.item);
-    resultado.persistido = persistir();
-    return resultado;
+    try {
+      var resposta = await cliente.from(TABELA).upsert(paraLinha(resultado.item)).select().single();
+      if (resposta.error) return { erro: 'Não foi possível salvar. ' + ERRO_CONEXAO };
+      var salvo = daLinha(resposta.data);
+      if (existente) itens[itens.indexOf(existente)] = salvo;
+      else itens.push(salvo);
+      return { item: salvo };
+    } catch (e) {
+      return { erro: 'Não foi possível salvar. ' + ERRO_CONEXAO };
+    }
   }
 
-  function remover(id) {
-    itens = itens.filter(function (item) { return item.id !== id; });
-    return persistir();
+  async function remover(id) {
+    try {
+      var resposta = await cliente.from(TABELA).delete().eq('id', id);
+      if (resposta.error) return { erro: 'Não foi possível excluir. ' + ERRO_CONEXAO };
+      itens = itens.filter(function (item) { return item.id !== id; });
+      return {};
+    } catch (e) {
+      return { erro: 'Não foi possível excluir. ' + ERRO_CONEXAO };
+    }
   }
 
   function obter(id) {
@@ -155,50 +228,101 @@
   }
 
   /* Mescla pelo id: registros novos entram e, em conflito, vale o editado por último. */
+  async function mesclar(lista) {
+    var adicionados = 0;
+    var atualizados = 0;
+    var ignorados = 0;
+    var linhas = [];
+
+    lista.forEach(function (entrada) {
+      var resultado = normalizar(entrada);
+      if (resultado.erro) {
+        ignorados++;
+        return;
+      }
+      var atual = obter(resultado.item.id);
+      if (!atual) {
+        adicionados++;
+      } else if (new Date(resultado.item.updatedAt) > new Date(atual.updatedAt)) {
+        atualizados++;
+      } else {
+        return;
+      }
+      linhas.push(paraLinha(resultado.item));
+    });
+
+    try {
+      for (var i = 0; i < linhas.length; i += TAMANHO_LOTE) {
+        var resposta = await cliente.from(TABELA).upsert(linhas.slice(i, i + TAMANHO_LOTE));
+        if (resposta.error) {
+          await carregar();
+          return { erro: 'A importação foi interrompida. ' + ERRO_CONEXAO };
+        }
+      }
+    } catch (e) {
+      await carregar();
+      return { erro: 'A importação foi interrompida. ' + ERRO_CONEXAO };
+    }
+
+    var recarga = await carregar();
+    if (recarga.erro) return recarga;
+    return { adicionados: adicionados, atualizados: atualizados, ignorados: ignorados };
+  }
+
   function importar(texto) {
     var dados;
     try {
       dados = JSON.parse(texto);
     } catch (e) {
-      return { erro: 'O arquivo não é um JSON válido.' };
+      return Promise.resolve({ erro: 'O arquivo não é um JSON válido.' });
     }
     if (!dados || dados.app !== APP || !Array.isArray(dados.items)) {
-      return { erro: 'Este arquivo não é um backup do Filmes e Séries.' };
+      return Promise.resolve({ erro: 'Este arquivo não é um backup do Filmes e Séries.' });
     }
     if (dados.version > VERSAO) {
-      return { erro: 'Este backup foi criado por uma versão mais nova do site.' };
+      return Promise.resolve({ erro: 'Este backup foi criado por uma versão mais nova do site.' });
     }
+    return mesclar(dados.items);
+  }
 
-    var validados = validarLista(dados.items);
-    var adicionados = 0;
-    var atualizados = 0;
-    validados.itens.forEach(function (novo) {
-      var atual = obter(novo.id);
-      if (!atual) {
-        itens.push(novo);
-        adicionados++;
-      } else if (new Date(novo.updatedAt) > new Date(atual.updatedAt)) {
-        itens[itens.indexOf(atual)] = novo;
-        atualizados++;
-      }
-    });
+  /* Lista da versão anterior do site, que guardava os títulos no navegador. */
+  function lerListaAntiga() {
+    try {
+      var dados = JSON.parse(localStorage.getItem(CHAVE_LOCAL_ANTIGA));
+      return dados && Array.isArray(dados.items) ? dados.items : [];
+    } catch (e) {
+      return [];
+    }
+  }
 
-    return {
-      adicionados: adicionados,
-      atualizados: atualizados,
-      ignorados: validados.ignorados,
-      persistido: persistir()
-    };
+  async function enviarListaAntiga() {
+    var resultado = await mesclar(lerListaAntiga());
+    if (!resultado.erro) apagarListaAntiga();
+    return resultado;
+  }
+
+  function apagarListaAntiga() {
+    try {
+      localStorage.removeItem(CHAVE_LOCAL_ANTIGA);
+    } catch (e) { /* Sem acesso ao armazenamento, não há o que apagar. */ }
   }
 
   window.Store = {
+    configurado: configurado,
+    iniciar: iniciar,
+    usuarioAtual: usuarioAtual,
+    aoMudarSessao: aoMudarSessao,
+    entrar: entrar,
+    sair: sair,
     carregar: carregar,
     salvar: salvar,
     remover: remover,
     obter: obter,
     exportar: exportar,
     importar: importar,
-    listar: function () { return itens.slice(); },
-    disponivel: function () { return armazenamentoDisponivel; }
+    lerListaAntiga: lerListaAntiga,
+    enviarListaAntiga: enviarListaAntiga,
+    apagarListaAntiga: apagarListaAntiga,
+    listar: function () { return itens.slice(); }
   };
 })();

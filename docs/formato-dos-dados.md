@@ -1,6 +1,6 @@
 # Formato dos dados
 
-Os dados são gravados no `localStorage`, na chave `filmes-e-series:v1`. O arquivo de backup usa o formato abaixo.
+Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/schema.sql`](../supabase/schema.sql). Lá, os campos usam nomes como `watched_on` e `created_at`, além de `user_id` para indicar a conta dona de cada linha. O arquivo de backup usa o formato abaixo, sem `user_id`.
 
 ```json
 {
@@ -30,7 +30,7 @@ Os dados são gravados no `localStorage`, na chave `filmes-e-series:v1`. O arqui
 
 | Campo | Tipo | Regras |
 | --- | --- | --- |
-| `id` | texto | Identificador único, gerado automaticamente |
+| `id` | UUID | Identificador único, gerado automaticamente; um valor que não seja UUID é trocado na importação |
 | `title` | texto | Obrigatório |
 | `type` | texto | `movie` ou `series` |
 | `status` | texto | `watched`, `watching` ou `planned` |

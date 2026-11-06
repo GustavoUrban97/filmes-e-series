@@ -92,6 +92,35 @@ h1 { font-family: Georgia, "Times New Roman", serif; font-size: 2rem; line-heigh
 
 .aviso { margin-bottom: 16px; }
 
+.aviso .botao { margin-top: 8px; }
+
+.aviso-neutro {
+  border: 1px solid var(--borda);
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+.aviso-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.topo-acoes { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.carregando { padding: 40px 16px; color: var(--texto-suave); text-align: center; }
+
+.login {
+  max-width: 400px;
+  margin: 40px auto;
+  padding: 24px;
+  border: 1px solid var(--borda);
+  border-radius: var(--raio);
+  background: var(--superficie);
+}
+
+.login form { display: grid; gap: 16px; }
+
+.login h2 { font-size: 1.25rem; }
+
+.botao:disabled { cursor: wait; opacity: 0.65; }
+
 .resumo {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -242,7 +271,6 @@ textarea { resize: vertical; }
   .resumo div:last-child { grid-column: 1 / -1; }
   .filtros { grid-template-columns: 1fr 1fr; }
   .campo-busca, .filtros .campo:last-child { grid-column: 1 / -1; }
-  .topo .botao, .rodape-acoes .botao { flex: 1 1 auto; }
-  .topo .botao { width: 100%; }
-  .rodape-acoes { width: 100%; }
+  .topo-acoes .botao, .rodape-acoes .botao { flex: 1 1 auto; }
+  .topo-acoes, .rodape-acoes { width: 100%; }
 }
