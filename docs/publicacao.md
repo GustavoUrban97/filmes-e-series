@@ -28,3 +28,7 @@ O GitHub Pages gratuito só publica a partir de repositório público. Isso deix
 ## Depois de uma atualização
 
 Os dados ficam no banco e não são afetados por uma nova publicação. Se você alterar a estrutura da tabela, aplique a mudança também no SQL Editor do Supabase.
+
+## Revisão antes de publicar
+
+O agente `revisor`, definido em [`.claude/agents/revisor.md`](../.claude/agents/revisor.md), lê a alteração sem poder editá-la e aponta bugs e falhas de segurança. Use-o em cada pull request. Ele não executa o site nem substitui os testes.
