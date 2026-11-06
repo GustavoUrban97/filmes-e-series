@@ -36,7 +36,7 @@ A busca usa o [TMDB](https://www.themoviedb.org). O token dele fica guardado no 
 
 Sem esses passos, o site continua funcionando, mas os campos precisam ser preenchidos manualmente.
 
-O TMDB é gratuito para uso não comercial, desde que seja creditado como fonte. O crédito fica no rodapé do site. Se o endereço do site mudar, atualize a lista `ORIGENS_PERMITIDAS` na função.
+O TMDB é gratuito para uso não comercial, desde que seja creditado como fonte. O crédito fica no rodapé do site. Se o endereço do site mudar, atualize a lista `ORIGENS_PERMITIDAS` na função e `ENDERECO_PUBLICADO` em `js/config.js`. Sem essa segunda mudança, o site publicado passaria a usar o projeto de testes.
 
 ## Limites do plano gratuito
 

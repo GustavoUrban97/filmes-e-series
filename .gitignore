@@ -6,7 +6,7 @@
 !.claude/launch.json
 
 # Credenciais do ambiente de testes
-.env.teste
+.env*
 
 # Backups exportados pelo site
 filmes-e-series-*.json

@@ -12,7 +12,7 @@ Os testes rodam em um projeto Supabase separado, com contas e dados falsos. Assi
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/servidor-local.ps1
 ```
 
-Abra `http://localhost:8123` e entre com uma das contas de teste. O servidor só atende esta máquina e não serve arquivos ocultos, como `.env.teste`.
+Abra `http://localhost:8123` e entre com uma das contas de teste. O servidor só atende pedidos desta máquina e só serve os arquivos do site. A porta é fixa, porque a função do TMDB só libera essa origem.
 
 ## Conferir o isolamento entre contas
 
@@ -20,7 +20,7 @@ Abra `http://localhost:8123` e entre com uma das contas de teste. O servidor só
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts/testar-isolamento.ps1
 ```
 
-O script usa as duas contas para confirmar que uma não lê, altera, exclui ou cria dados em nome da outra. Também confere o acesso sem login, o cadastro fechado e a função. Ele remove o que criou e se recusa a rodar contra o projeto de produção.
+O script usa as duas contas para confirmar, nas três tabelas, que uma não lê, altera, exclui ou cria dados em nome da outra. Também confere o acesso sem login, o cadastro fechado e a função, inclusive com a chave pública no lugar do login. Ele apaga os dados das duas contas de teste no início e no fim, e só roda contra o projeto do bloco `TESTES`.
 
 Rode-o sempre que mudar tabelas, regras de acesso ou a função.
 

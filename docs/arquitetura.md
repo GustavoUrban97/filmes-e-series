@@ -114,7 +114,7 @@ As gravações de episódios passam por uma fila em `js/store.js`, para que cliq
 | Acesso aos dados | RLS por `user_id` nas três tabelas, e `anon` sem permissão | `supabase/schema.sql` |
 | Contas | Cadastro fechado | Painel do Supabase |
 | Segredos | Token do TMDB só em segredo da função | Painel do Supabase |
-| Função | Confere a sessão, valida a entrada e limita as origens | `index.ts` |
+| Função | Confere a sessão e valida a entrada. O CORS só limita quais sites leem a resposta no navegador | `index.ts` |
 | Navegador | CSP, SRI e texto externo só por `textContent` | `index.html` e `js/app.js` |
 | Testes | Fora do endereço publicado, o site nunca usa o banco real | `js/config.js` |
 
