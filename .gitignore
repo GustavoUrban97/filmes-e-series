@@ -3,6 +3,10 @@
 
 # Os agentes fazem parte do projeto
 !.claude/agents/
+!.claude/launch.json
+
+# Credenciais do ambiente de testes
+.env.teste
 
 # Backups exportados pelo site
 filmes-e-series-*.json

@@ -1598,3 +1598,14 @@ kbd {
 @media (max-width: 860px) {
   .continuar-lista { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* Aviso de ambiente de testes */
+
+.faixa-testes {
+  padding: 6px 16px;
+  background: var(--ambar);
+  color: var(--sobre-ambar);
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+}
