@@ -6,7 +6,7 @@
   <title>Filmes e Séries</title>
   <meta name="description" content="Registro pessoal de filmes e séries assistidos.">
   <meta name="color-scheme" content="light dark">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; img-src 'self' https://image.tmdb.org; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
@@ -111,6 +111,10 @@
       <button type="button" class="botao" id="botao-importar">Importar backup</button>
       <input type="file" id="arquivo-importar" accept="application/json,.json" hidden>
     </div>
+    <div class="credito">
+      <a href="https://www.themoviedb.org/" rel="noopener" target="_blank"><img src="img/tmdb.svg" alt="TMDB" width="80" height="12"></a>
+      <p>Este site usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.</p>
+    </div>
   </footer>
 
   <dialog class="dialogo" id="dialogo" aria-labelledby="dialogo-titulo">
@@ -120,8 +124,10 @@
 
       <label class="campo">
         <span>Título</span>
-        <input type="text" name="title" maxlength="200" required autocomplete="off">
+        <input type="text" name="title" maxlength="200" required autocomplete="off" placeholder="Digite para buscar o filme ou a série" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes">
       </label>
+      <p class="sugestoes-estado" id="sugestoes-estado" role="status" hidden></p>
+      <ul class="sugestoes" id="sugestoes" role="listbox" aria-label="Títulos encontrados" hidden></ul>
 
       <div class="linha">
         <label class="campo">
@@ -152,27 +158,22 @@
         </label>
       </div>
 
-      <div class="linha" data-somente="watched">
+      <div class="linha-avaliacao" data-somente="watched">
         <label class="campo">
           <span>Visto em</span>
           <input type="date" name="watchedOn">
         </label>
-        <label class="campo">
-          <span>Nota</span>
-          <select name="rating">
-            <option value="">Sem nota</option>
-            <option value="10">10</option>
-            <option value="9">9</option>
-            <option value="8">8</option>
-            <option value="7">7</option>
-            <option value="6">6</option>
-            <option value="5">5</option>
-            <option value="4">4</option>
-            <option value="3">3</option>
-            <option value="2">2</option>
-            <option value="1">1</option>
-          </select>
-        </label>
+        <div class="campo">
+          <span id="nota-rotulo">Nota</span>
+          <div class="nota-controle">
+            <div class="estrelas estrelas-seletor" id="seletor-nota" role="slider" tabindex="0" aria-labelledby="nota-rotulo" aria-valuemin="0" aria-valuemax="5">
+              <span class="estrelas-cheias" id="seletor-nota-cheias"></span>
+            </div>
+            <span class="nota-valor" id="nota-valor" aria-hidden="true"></span>
+            <button type="button" class="botao-texto" id="limpar-nota" hidden>Limpar</button>
+          </div>
+          <input type="hidden" name="rating">
+        </div>
       </div>
 
       <label class="campo">

@@ -214,6 +214,19 @@
     }
   }
 
+  /* A busca passa por uma função no Supabase, que guarda o token do TMDB fora do site. */
+  async function buscarTitulos(consulta) {
+    try {
+      var resposta = await cliente.functions.invoke('buscar-titulos', { body: { q: consulta } });
+      if (resposta.error || !resposta.data || !Array.isArray(resposta.data.resultados)) {
+        return { erro: 'A busca não está disponível agora. Você pode preencher os campos manualmente.' };
+      }
+      return { resultados: resposta.data.resultados };
+    } catch (e) {
+      return { erro: 'A busca não está disponível agora. Você pode preencher os campos manualmente.' };
+    }
+  }
+
   function obter(id) {
     return itens.filter(function (item) { return item.id === id; })[0] || null;
   }
@@ -317,6 +330,7 @@
     carregar: carregar,
     salvar: salvar,
     remover: remover,
+    buscarTitulos: buscarTitulos,
     obter: obter,
     exportar: exportar,
     importar: importar,

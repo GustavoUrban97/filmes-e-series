@@ -1,5 +1,10 @@
 # Histórico de mudanças
 
+## 2.1.0 - 2026-11-06
+
+- Nota com seletor de até 5 estrelas, com meia estrela
+- Busca de filmes e séries pelo TMDB, com preenchimento de título, tipo, ano e gêneros
+
 ## 2.0.0 - 2026-11-06
 
 - Login com e-mail e senha, com cadastro fechado

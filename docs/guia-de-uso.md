@@ -6,9 +6,16 @@ Entre com o seu e-mail e a sua senha. O login continua ativo neste aparelho até
 
 ## Adicionar um título
 
-1. Clique em **Adicionar título**.
-2. Preencha o título, o único campo obrigatório, e escolha o tipo e a situação.
-3. Clique em **Salvar**.
+1. Clique em **Adicionar título** e comece a digitar o nome.
+2. Escolha o filme ou a série na lista. Título, tipo, ano e gêneros são preenchidos automaticamente, e você ainda pode alterá-los.
+3. Ajuste a situação e, se já assistiu, a data e a nota.
+4. Clique em **Salvar**.
+
+Se o título não aparecer na lista, preencha os campos manualmente. Só o título é obrigatório.
+
+## Dar uma nota
+
+A nota vai de meia a 5 estrelas. Clique ou arraste sobre as estrelas: a metade esquerda de cada uma vale meia estrela. No teclado, use as setas. O botão **Limpar** remove a nota.
 
 Alguns campos dependem do que você escolheu:
 

@@ -36,7 +36,7 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 | `status` | texto | `watched`, `watching` ou `planned` |
 | `year` | inteiro ou `null` | De 1888 até o ano atual mais 5 |
 | `seasons` | inteiro ou `null` | Maior ou igual a 0; apenas em séries |
-| `rating` | inteiro ou `null` | De 1 a 10; apenas com `status` igual a `watched` |
+| `rating` | inteiro ou `null` | De 1 a 10, em que cada ponto vale meia estrela (7 = 3,5 estrelas); apenas com `status` igual a `watched` |
 | `watchedOn` | texto ou `null` | Data `AAAA-MM-DD`; apenas com `status` igual a `watched` |
 | `genres` | lista de textos | Sem repetição, ignorando maiúsculas e minúsculas |
 | `notes` | texto | Pode ser vazio |

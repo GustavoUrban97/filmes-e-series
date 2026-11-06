@@ -61,6 +61,15 @@
     return numero.toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
   }
 
+  /* A nota é guardada de 1 a 10: cada ponto equivale a meia estrela. */
+  function formatarEstrelas(nota) {
+    return (nota / 2).toLocaleString('pt-BR', { maximumFractionDigits: 1 });
+  }
+
+  function textoEstrelas(nota) {
+    return formatarEstrelas(nota) + (nota === 2 ? ' estrela' : ' estrelas');
+  }
+
   function plural(n, singular, pluralTexto) {
     return n + ' ' + (n === 1 ? singular : pluralTexto);
   }
@@ -69,7 +78,7 @@
     function conta(condicao) { return itens.filter(condicao).length; }
     var notas = itens.filter(function (i) { return i.rating !== null; });
     var media = notas.length
-      ? formatarDecimal(notas.reduce(function (s, i) { return s + i.rating; }, 0) / notas.length)
+      ? formatarDecimal(notas.reduce(function (s, i) { return s + i.rating; }, 0) / notas.length / 2) + ' ★'
       : '–';
 
     var dados = [
@@ -131,9 +140,15 @@
     li.appendChild(criar('h3', '', item.title));
 
     if (item.rating !== null) {
-      var nota = criar('div', 'item-nota', String(item.rating));
-      nota.setAttribute('aria-label', 'Nota ' + item.rating + ' de 10');
-      nota.appendChild(criar('small', '', '/10'));
+      var nota = criar('div', 'item-nota');
+      nota.setAttribute('role', 'img');
+      nota.setAttribute('aria-label', 'Nota: ' + textoEstrelas(item.rating) + ' de 5');
+      var estrelas = criar('span', 'estrelas');
+      var cheias = criar('span', 'estrelas-cheias');
+      cheias.style.width = (item.rating * 10) + '%';
+      estrelas.appendChild(cheias);
+      nota.appendChild(estrelas);
+      nota.appendChild(criar('span', '', formatarEstrelas(item.rating)));
       li.appendChild(nota);
     } else {
       li.appendChild(criar('div'));
@@ -214,6 +229,185 @@
     });
   }
 
+  function definirNota(nota) {
+    formulario.elements.rating.value = nota ? String(nota) : '';
+    el('seletor-nota-cheias').style.width = (nota * 10) + '%';
+    el('nota-valor').textContent = nota ? formatarEstrelas(nota) : '';
+    el('limpar-nota').hidden = !nota;
+    var seletor = el('seletor-nota');
+    seletor.setAttribute('aria-valuenow', String(nota / 2));
+    seletor.setAttribute('aria-valuetext', nota ? textoEstrelas(nota) : 'Sem nota');
+  }
+
+  function notaAtual() {
+    return Number(formulario.elements.rating.value) || 0;
+  }
+
+  /* A metade esquerda de cada estrela vale meia estrela. */
+  function notaDoPonteiro(evento) {
+    var area = el('seletor-nota').getBoundingClientRect();
+    var nota = Math.ceil(((evento.clientX - area.left) / area.width) * 10);
+    return Math.min(10, Math.max(1, nota));
+  }
+
+  function aoPressionarNota(evento) {
+    var seletor = el('seletor-nota');
+    seletor.focus();
+    seletor.setPointerCapture(evento.pointerId);
+    definirNota(notaDoPonteiro(evento));
+  }
+
+  function aoMoverNota(evento) {
+    if (el('seletor-nota').hasPointerCapture(evento.pointerId)) definirNota(notaDoPonteiro(evento));
+  }
+
+  function aoTeclarNota(evento) {
+    var novas = {
+      ArrowRight: notaAtual() + 1,
+      ArrowUp: notaAtual() + 1,
+      ArrowLeft: notaAtual() - 1,
+      ArrowDown: notaAtual() - 1,
+      Home: 0,
+      End: 10
+    };
+    if (!(evento.key in novas)) return;
+    evento.preventDefault();
+    definirNota(Math.min(10, Math.max(0, novas[evento.key])));
+  }
+
+  /* Busca de títulos: sugestões abaixo do campo; o preenchimento manual continua livre. */
+  var ATRASO_BUSCA = 300;
+  var MINIMO_BUSCA = 2;
+  var campoTitulo = formulario.elements.title;
+  var sugestoes = el('sugestoes');
+  var estadoSugestoes = el('sugestoes-estado');
+  var resultadosBusca = [];
+  var indiceAtivo = -1;
+  var numeroBusca = 0;
+  var temporizadorBusca = null;
+
+  function fecharSugestoes() {
+    clearTimeout(temporizadorBusca);
+    numeroBusca++;
+    resultadosBusca = [];
+    indiceAtivo = -1;
+    sugestoes.textContent = '';
+    sugestoes.hidden = true;
+    estadoSugestoes.hidden = true;
+    campoTitulo.setAttribute('aria-expanded', 'false');
+    campoTitulo.removeAttribute('aria-activedescendant');
+  }
+
+  function mostrarEstadoBusca(texto) {
+    estadoSugestoes.textContent = texto;
+    estadoSugestoes.hidden = !texto;
+  }
+
+  function criarSugestao(resultado, indice) {
+    var opcao = criar('li', 'sugestao');
+    opcao.id = 'sugestao-' + indice;
+    opcao.setAttribute('role', 'option');
+    opcao.setAttribute('aria-selected', 'false');
+
+    if (resultado.poster) {
+      var poster = criar('img');
+      poster.src = resultado.poster;
+      poster.alt = '';
+      poster.loading = 'lazy';
+      opcao.appendChild(poster);
+    } else {
+      opcao.appendChild(criar('span', 'sugestao-sem-poster'));
+    }
+
+    var textos = criar('span');
+    textos.appendChild(criar('span', 'sugestao-titulo', resultado.title));
+    var meta = [ROTULO_TIPO[resultado.type]];
+    if (resultado.year) meta.push(resultado.year);
+    if (resultado.genres.length) meta.push(resultado.genres.join(', '));
+    textos.appendChild(criar('span', 'sugestao-meta', meta.join(' · ')));
+    opcao.appendChild(textos);
+
+    /* Evita que o campo perca o foco, o que fecharia a lista antes do clique. */
+    opcao.addEventListener('mousedown', function (evento) { evento.preventDefault(); });
+    opcao.addEventListener('click', function () { aplicarSugestao(resultado); });
+    return opcao;
+  }
+
+  function mostrarSugestoes(resultados) {
+    resultadosBusca = resultados;
+    indiceAtivo = -1;
+    sugestoes.textContent = '';
+    resultados.forEach(function (resultado, indice) {
+      sugestoes.appendChild(criarSugestao(resultado, indice));
+    });
+    sugestoes.hidden = resultados.length === 0;
+    campoTitulo.setAttribute('aria-expanded', String(resultados.length > 0));
+    campoTitulo.removeAttribute('aria-activedescendant');
+  }
+
+  async function buscarSugestoes(consulta, numero) {
+    var resultado = await Store.buscarTitulos(consulta);
+    /* Descarta respostas antigas: só a busca mais recente pode preencher a lista. */
+    if (numero !== numeroBusca) return;
+    if (resultado.erro) {
+      mostrarSugestoes([]);
+      mostrarEstadoBusca(resultado.erro);
+      return;
+    }
+    mostrarSugestoes(resultado.resultados);
+    mostrarEstadoBusca(resultado.resultados.length ? '' : 'Nada encontrado. Você pode preencher os campos manualmente.');
+  }
+
+  function aoDigitarTitulo() {
+    fecharSugestoes();
+    var consulta = campoTitulo.value.trim();
+    if (consulta.length < MINIMO_BUSCA) return;
+    var numero = numeroBusca;
+    temporizadorBusca = setTimeout(function () {
+      mostrarEstadoBusca('Buscando…');
+      buscarSugestoes(consulta, numero);
+    }, ATRASO_BUSCA);
+  }
+
+  function aplicarSugestao(resultado) {
+    var campos = formulario.elements;
+    campos.title.value = resultado.title;
+    campos.type.value = resultado.type;
+    campos.year.value = resultado.year === null ? '' : resultado.year;
+    campos.genres.value = resultado.genres.join(', ');
+    fecharSugestoes();
+    atualizarCamposCondicionais();
+    campos.status.focus();
+  }
+
+  function destacarSugestao(indice) {
+    var opcoes = sugestoes.children;
+    if (opcoes[indiceAtivo]) opcoes[indiceAtivo].setAttribute('aria-selected', 'false');
+    indiceAtivo = indice;
+    opcoes[indice].setAttribute('aria-selected', 'true');
+    opcoes[indice].scrollIntoView({ block: 'nearest' });
+    campoTitulo.setAttribute('aria-activedescendant', opcoes[indice].id);
+  }
+
+  function aoTeclarTitulo(evento) {
+    var total = resultadosBusca.length;
+    if (!total) return;
+    if (evento.key === 'ArrowDown') {
+      evento.preventDefault();
+      destacarSugestao((indiceAtivo + 1) % total);
+    } else if (evento.key === 'ArrowUp') {
+      evento.preventDefault();
+      destacarSugestao((indiceAtivo - 1 + total) % total);
+    } else if (evento.key === 'Enter' && indiceAtivo >= 0) {
+      evento.preventDefault();
+      aplicarSugestao(resultadosBusca[indiceAtivo]);
+    } else if (evento.key === 'Escape') {
+      /* Fecha só a lista, sem fechar o formulário junto. */
+      evento.preventDefault();
+      fecharSugestoes();
+    }
+  }
+
   function mostrarErro(texto) {
     erroFormulario.textContent = texto;
     erroFormulario.hidden = !texto;
@@ -222,6 +416,8 @@
   function abrirFormulario(item) {
     idEmEdicao = item ? item.id : null;
     formulario.reset();
+    fecharSugestoes();
+    definirNota(item ? item.rating || 0 : 0);
     mostrarErro('');
     el('dialogo-titulo').textContent = item ? 'Editar título' : 'Adicionar título';
 
@@ -233,7 +429,6 @@
       campos.year.value = item.year === null ? '' : item.year;
       campos.seasons.value = item.seasons === null ? '' : item.seasons;
       campos.watchedOn.value = item.watchedOn || '';
-      campos.rating.value = item.rating === null ? '' : String(item.rating);
       campos.genres.value = item.genres.join(', ');
       campos.notes.value = item.notes;
     }
@@ -428,6 +623,17 @@
     }
   }
 
+  el('seletor-nota').addEventListener('pointerdown', aoPressionarNota);
+  el('seletor-nota').addEventListener('pointermove', aoMoverNota);
+  el('seletor-nota').addEventListener('keydown', aoTeclarNota);
+  el('limpar-nota').addEventListener('click', function () {
+    definirNota(0);
+    el('seletor-nota').focus();
+  });
+  campoTitulo.addEventListener('input', aoDigitarTitulo);
+  campoTitulo.addEventListener('keydown', aoTeclarTitulo);
+  campoTitulo.addEventListener('blur', fecharSugestoes);
+  dialogo.addEventListener('close', fecharSugestoes);
   el('formulario-login').addEventListener('submit', aoEntrar);
   el('botao-sair').addEventListener('click', function () { Store.sair(); });
   el('aviso-geral-acao').addEventListener('click', carregarLista);

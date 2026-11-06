@@ -25,6 +25,19 @@ O site guarda os dados e faz o login pelo [Supabase](https://supabase.com). Este
 
 **Nunca use a chave secreta (`sb_secret_` ou `service_role`) no site.** Ela ignora todas as regras de acesso.
 
+## 5. Ativar a busca de títulos
+
+A busca usa o [TMDB](https://www.themoviedb.org). O token dele fica guardado no Supabase, fora do site, e só contas conectadas podem usar a busca.
+
+1. Crie uma conta no TMDB e, em **Settings > API**, solicite uma chave para uso pessoal e não comercial.
+2. Copie o **API Read Access Token**. Esse é o token longo, não a API Key curta.
+3. No Supabase, abra **Edge Functions > Secrets** e crie o segredo `TMDB_TOKEN` com esse valor.
+4. Em **Edge Functions**, crie uma função pelo editor com o nome `buscar-titulos`, cole o conteúdo de [`supabase/functions/buscar-titulos/index.ts`](../supabase/functions/buscar-titulos/index.ts) e publique. Mantenha **Verify JWT** ativo.
+
+Sem esses passos, o site continua funcionando, mas os campos precisam ser preenchidos manualmente.
+
+O TMDB é gratuito para uso não comercial, desde que seja creditado como fonte. O crédito fica no rodapé do site. Se o endereço do site mudar, atualize a lista `ORIGENS_PERMITIDAS` na função.
+
 ## Limites do plano gratuito
 
 - O projeto é pausado depois de cerca de uma semana com pouca atividade. Quando isso acontecer, o site mostra um erro de conexão: reative o projeto no painel do Supabase.
