@@ -191,6 +191,14 @@
     if (item.notes) li.appendChild(criar('p', 'item-notas', item.notes));
 
     var acoes = criar('div', 'item-acoes');
+    if (item.type === 'series' && item.status === 'watching') {
+      var maisUm = criar('button', 'botao', '+1 episódio');
+      maisUm.type = 'button';
+      maisUm.dataset.maisUm = item.id;
+      maisUm.setAttribute('aria-label', 'Marcar mais um episódio de ' + item.title);
+      maisUm.addEventListener('click', function () { marcarEpisodio(item, maisUm); });
+      acoes.appendChild(maisUm);
+    }
     var editar = criar('button', 'botao', 'Editar');
     editar.type = 'button';
     editar.setAttribute('aria-label', 'Editar ' + item.title);
@@ -513,6 +521,22 @@
     }
     renderizar();
     avisar('Excluído: ' + item.title);
+  }
+
+  async function marcarEpisodio(item, botao) {
+    botao.disabled = true;
+    var episodio = (item.episode || 0) + 1;
+    var resultado = await Store.salvar(Object.assign({}, item, { episode: episodio }));
+    if (resultado.erro) {
+      botao.disabled = false;
+      avisar(resultado.erro);
+      return;
+    }
+    renderizar();
+    /* A lista é redesenhada: devolve o foco ao botão para quem usa o teclado. */
+    var novoBotao = lista.querySelector('[data-mais-um="' + item.id + '"]');
+    if (novoBotao) novoBotao.focus();
+    avisar(item.title + ': episódio ' + episodio + ' marcado');
   }
 
   function exportarBackup() {

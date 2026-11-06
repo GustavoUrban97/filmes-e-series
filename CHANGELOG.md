@@ -1,5 +1,9 @@
 # Histórico de mudanças
 
+## 2.3.0 - 2026-11-06
+
+- Botão **+1 episódio** nas séries com a situação Assistindo
+
 ## 2.2.0 - 2026-11-06
 
 - Imagem do título salva e exibida na lista

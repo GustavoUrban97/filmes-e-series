@@ -17,7 +17,7 @@ Para colocar a imagem em um título já salvo, clique em **Editar**, digite o no
 
 ## Acompanhar uma série
 
-Em uma série, preencha **Temporada** e **Último episódio visto**. O progresso aparece na lista, por exemplo `Temporada 2, episódio 5`. Quando assistir a outro episódio, clique em **Editar** e atualize o número.
+Em uma série, preencha **Temporada** e **Último episódio visto**. O progresso aparece na lista, por exemplo `Temporada 2, episódio 5`. Nas séries com a situação **Assistindo**, o botão **+1 episódio** no card avança o número com um clique. Para mudar de temporada, clique em **Editar** e ajuste os dois campos.
 
 ## Dar uma nota
 

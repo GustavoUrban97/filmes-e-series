@@ -341,7 +341,7 @@ textarea { resize: vertical; }
   white-space: pre-wrap;
 }
 
-.item-acoes { display: flex; gap: 8px; grid-column: 1 / -1; margin-top: 8px; }
+.item-acoes { display: flex; flex-wrap: wrap; gap: 8px; grid-column: 1 / -1; margin-top: 8px; }
 
 .item-acoes .botao { min-height: 36px; padding: 4px 12px; font-size: 0.875rem; font-weight: 500; }
 
