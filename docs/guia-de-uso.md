@@ -7,11 +7,17 @@ Entre com o seu e-mail e a sua senha. O login continua ativo neste aparelho até
 ## Adicionar um título
 
 1. Clique em **Adicionar título** e comece a digitar o nome.
-2. Escolha o filme ou a série na lista. Título, tipo, ano e gêneros são preenchidos automaticamente, e você ainda pode alterá-los.
+2. Escolha o filme ou a série na lista. Título, tipo, ano, gêneros e imagem são preenchidos automaticamente, e você ainda pode alterá-los.
 3. Ajuste a situação e, se já assistiu, a data e a nota.
 4. Clique em **Salvar**.
 
 Se o título não aparecer na lista, preencha os campos manualmente. Só o título é obrigatório.
+
+Para colocar a imagem em um título já salvo, clique em **Editar**, digite o nome de novo e escolha na lista. O botão **Remover**, ao lado da imagem no formulário, tira a imagem sem alterar o resto.
+
+## Acompanhar uma série
+
+Em uma série, preencha **Temporada** e **Último episódio visto**. O progresso aparece na lista, por exemplo `Temporada 2, episódio 5`. Quando assistir a outro episódio, clique em **Editar** e atualize o número.
 
 ## Dar uma nota
 
@@ -21,7 +27,7 @@ Alguns campos dependem do que você escolheu:
 
 | Campo | Aparece quando |
 | --- | --- |
-| Temporadas vistas | o tipo é **Série** |
+| Temporada e Último episódio visto | o tipo é **Série** |
 | Visto em e Nota | a situação é **Assistido** |
 
 > Ao mudar um título de **Assistido** para outra situação, a nota e a data são apagadas ao salvar.

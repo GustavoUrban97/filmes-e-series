@@ -5,7 +5,8 @@
   var TABELA = 'titles';
   var CHAVE_LOCAL_ANTIGA = 'filmes-e-series:v1';
   var APP = 'filmes-e-series';
-  var VERSAO = 1;
+  var VERSAO = 2;
+  var PREFIXO_POSTER = 'https://image.tmdb.org/t/p/';
   var ANO_MINIMO = 1888;
   var TAMANHO_PAGINA = 1000;
   var TAMANHO_LOTE = 500;
@@ -47,10 +48,20 @@
       return { erro: 'O ano deve estar entre ' + ANO_MINIMO + ' e ' + anoMaximo + '.' };
     }
 
-    var temporadas = entrada.type === 'series' ? inteiroOuNulo(entrada.seasons) : null;
-    if (temporadas !== null && !(temporadas >= 0)) {
-      return { erro: 'As temporadas devem ser um número inteiro.' };
+    /* Backups da versão 1 chamam a temporada de "seasons". */
+    var serie = entrada.type === 'series';
+    var temporada = serie ? inteiroOuNulo(entrada.season !== undefined ? entrada.season : entrada.seasons) : null;
+    if (temporada !== null && !(temporada >= 0)) {
+      return { erro: 'A temporada deve ser um número inteiro.' };
     }
+    var episodio = serie ? inteiroOuNulo(entrada.episode) : null;
+    if (episodio !== null && !(episodio >= 0)) {
+      return { erro: 'O episódio deve ser um número inteiro.' };
+    }
+
+    var poster = typeof entrada.posterUrl === 'string' && entrada.posterUrl.indexOf(PREFIXO_POSTER) === 0
+      ? entrada.posterUrl
+      : null;
 
     var assistido = entrada.status === 'watched';
     var nota = assistido ? inteiroOuNulo(entrada.rating) : null;
@@ -78,7 +89,9 @@
         type: entrada.type,
         status: entrada.status,
         year: ano,
-        seasons: temporadas,
+        season: temporada,
+        episode: episodio,
+        posterUrl: poster,
         rating: nota,
         watchedOn: vistoEm,
         genres: generos,
@@ -96,7 +109,9 @@
       type: item.type,
       status: item.status,
       year: item.year,
-      seasons: item.seasons,
+      season: item.season,
+      episode: item.episode,
+      poster_url: item.posterUrl,
       rating: item.rating,
       watched_on: item.watchedOn,
       genres: item.genres,
@@ -113,7 +128,9 @@
       type: linha.type,
       status: linha.status,
       year: linha.year,
-      seasons: linha.seasons,
+      season: linha.season,
+      episode: linha.episode,
+      posterUrl: linha.poster_url,
       rating: linha.rating,
       watchedOn: linha.watched_on,
       genres: linha.genres,

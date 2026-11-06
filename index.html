@@ -128,6 +128,11 @@
       </label>
       <p class="sugestoes-estado" id="sugestoes-estado" role="status" hidden></p>
       <ul class="sugestoes" id="sugestoes" role="listbox" aria-label="Títulos encontrados" hidden></ul>
+      <div class="poster-escolhido" id="poster-escolhido" hidden>
+        <img id="poster-escolhido-img" alt="" width="34" height="51">
+        <span>Imagem do título</span>
+        <button type="button" class="botao-texto" id="remover-poster">Remover</button>
+      </div>
 
       <div class="linha">
         <label class="campo">
@@ -152,9 +157,16 @@
           <span>Ano de lançamento</span>
           <input type="number" name="year" inputmode="numeric" placeholder="Opcional">
         </label>
-        <label class="campo" data-somente="series">
-          <span>Temporadas vistas</span>
-          <input type="number" name="seasons" min="0" inputmode="numeric" placeholder="Opcional">
+      </div>
+
+      <div class="linha" data-somente="series">
+        <label class="campo">
+          <span>Temporada</span>
+          <input type="number" name="season" min="0" inputmode="numeric" placeholder="Opcional">
+        </label>
+        <label class="campo">
+          <span>Último episódio visto</span>
+          <input type="number" name="episode" min="0" inputmode="numeric" placeholder="Opcional">
         </label>
       </div>
 

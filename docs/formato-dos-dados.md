@@ -5,7 +5,7 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 ```json
 {
   "app": "filmes-e-series",
-  "version": 1,
+  "version": 2,
   "exportedAt": "2026-11-05T18:30:00.000Z",
   "items": [
     {
@@ -14,7 +14,9 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
       "type": "series",
       "status": "watched",
       "year": 2022,
-      "seasons": 2,
+      "season": 2,
+      "episode": 5,
+      "posterUrl": "https://image.tmdb.org/t/p/w92/exemplo.jpg",
       "rating": 9,
       "watchedOn": "2026-10-01",
       "genres": ["drama", "suspense"],
@@ -35,7 +37,9 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 | `type` | texto | `movie` ou `series` |
 | `status` | texto | `watched`, `watching` ou `planned` |
 | `year` | inteiro ou `null` | De 1888 até o ano atual mais 5 |
-| `seasons` | inteiro ou `null` | Maior ou igual a 0; apenas em séries |
+| `season` | inteiro ou `null` | Temporada atual, maior ou igual a 0; apenas em séries. Backups da versão 1 usam `seasons`, que é aceito na importação |
+| `episode` | inteiro ou `null` | Último episódio visto, maior ou igual a 0; apenas em séries |
+| `posterUrl` | texto ou `null` | Endereço da imagem no TMDB; outros endereços são descartados |
 | `rating` | inteiro ou `null` | De 1 a 10, em que cada ponto vale meia estrela (7 = 3,5 estrelas); apenas com `status` igual a `watched` |
 | `watchedOn` | texto ou `null` | Data `AAAA-MM-DD`; apenas com `status` igual a `watched` |
 | `genres` | lista de textos | Sem repetição, ignorando maiúsculas e minúsculas |

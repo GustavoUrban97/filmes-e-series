@@ -1,5 +1,11 @@
 # Histórico de mudanças
 
+## 2.2.0 - 2026-11-06
+
+- Imagem do título salva e exibida na lista
+- Temporada e último episódio visto em séries, no lugar de "temporadas vistas"
+- Exige executar `supabase/migracoes/002-poster-e-episodio.sql` em projetos existentes
+
 ## 2.1.0 - 2026-11-06
 
 - Nota com seletor de até 5 estrelas, com meia estrela

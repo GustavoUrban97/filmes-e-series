@@ -8,8 +8,8 @@ Site pessoal, com login, para registrar filmes e séries: o que você já assist
 
 - Login com e-mail e senha, com cadastro fechado
 - Lista salva em banco de dados, disponível em qualquer aparelho
-- Busca de filmes e séries pelo TMDB, que preenche título, tipo, ano e gêneros
-- Cadastro com situação, ano, temporadas vistas, data, nota de até 5 estrelas, gêneros e anotações
+- Busca de filmes e séries pelo TMDB, que preenche título, tipo, ano, gêneros e imagem
+- Cadastro com situação, ano, temporada e último episódio visto, data, nota de até 5 estrelas, gêneros e anotações
 - Edição e exclusão de títulos
 - Busca por título, gênero ou anotação, sem diferenciar acentos
 - Filtros por tipo e situação, e cinco opções de ordenação
@@ -38,6 +38,7 @@ js/config.js         Endereço e chave pública do Supabase
 js/store.js          Dados: login, validação, banco e backup
 js/app.js            Interface: login, lista, filtros e formulário
 supabase/schema.sql  Tabela e regras de acesso
+supabase/migracoes/  Mudanças para bancos já criados
 supabase/functions/  Função que consulta o TMDB
 img/                 Logo do TMDB
 docs/                Documentação

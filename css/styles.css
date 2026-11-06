@@ -172,13 +172,40 @@ textarea { resize: vertical; }
 
 .item {
   display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 4px 16px;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 16px;
   padding: 16px;
   border: 1px solid var(--borda);
   border-radius: var(--raio);
   background: var(--superficie);
 }
+
+.item-poster {
+  display: block;
+  width: 72px;
+  height: 108px;
+  border-radius: 6px;
+  background: var(--borda);
+  object-fit: cover;
+}
+
+.item-corpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 4px 16px;
+  align-content: start;
+}
+
+.poster-escolhido {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: -8px;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+.poster-escolhido img { display: block; border-radius: 4px; object-fit: cover; }
 
 .item h3 { font-size: 1.0625rem; overflow-wrap: anywhere; }
 

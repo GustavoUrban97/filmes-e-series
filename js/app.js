@@ -134,8 +134,30 @@
     return itens.sort(function (a, b) { return comparar(a, b) || porTitulo(a, b); });
   }
 
+  function textoProgresso(item) {
+    var partes = [];
+    if (item.season !== null) partes.push('Temporada ' + item.season);
+    if (item.episode !== null) partes.push((partes.length ? 'episódio ' : 'Episódio ') + item.episode);
+    return partes.join(', ');
+  }
+
+  function criarPoster(item) {
+    if (!item.posterUrl) return criar('div', 'item-poster');
+    var poster = criar('img', 'item-poster');
+    poster.src = item.posterUrl.replace('/w92/', '/w154/');
+    poster.alt = '';
+    poster.loading = 'lazy';
+    poster.addEventListener('error', function () {
+      poster.replaceWith(criar('div', 'item-poster'));
+    });
+    return poster;
+  }
+
   function renderizarItem(item) {
-    var li = criar('li', 'item');
+    var cartao = criar('li', 'item');
+    var li = criar('div', 'item-corpo');
+    cartao.appendChild(criarPoster(item));
+    cartao.appendChild(li);
 
     li.appendChild(criar('h3', '', item.title));
 
@@ -160,7 +182,8 @@
     meta.appendChild(tipo);
     meta.appendChild(criar('span', '', ROTULO_SITUACAO[item.status]));
     if (item.year !== null) meta.appendChild(criar('span', '', String(item.year)));
-    if (item.seasons !== null) meta.appendChild(criar('span', '', plural(item.seasons, 'temporada', 'temporadas')));
+    var progresso = textoProgresso(item);
+    if (progresso) meta.appendChild(criar('span', '', progresso));
     if (item.watchedOn) meta.appendChild(criar('span', '', 'Visto em ' + formatarData(item.watchedOn)));
     if (item.genres.length) meta.appendChild(criar('span', '', item.genres.join(', ')));
     li.appendChild(meta);
@@ -180,7 +203,7 @@
     acoes.appendChild(excluir);
     li.appendChild(acoes);
 
-    return li;
+    return cartao;
   }
 
   function filtrosAtivos() {
@@ -227,6 +250,15 @@
       var alvo = bloco.dataset.somente;
       bloco.hidden = !(alvo === tipo || alvo === situacao);
     });
+  }
+
+  var posterAtual = null;
+
+  function definirPoster(url) {
+    posterAtual = url || null;
+    el('poster-escolhido').hidden = !posterAtual;
+    if (posterAtual) el('poster-escolhido-img').src = posterAtual;
+    else el('poster-escolhido-img').removeAttribute('src');
   }
 
   function definirNota(nota) {
@@ -375,6 +407,7 @@
     campos.type.value = resultado.type;
     campos.year.value = resultado.year === null ? '' : resultado.year;
     campos.genres.value = resultado.genres.join(', ');
+    definirPoster(resultado.poster);
     fecharSugestoes();
     atualizarCamposCondicionais();
     campos.status.focus();
@@ -418,6 +451,7 @@
     formulario.reset();
     fecharSugestoes();
     definirNota(item ? item.rating || 0 : 0);
+    definirPoster(item ? item.posterUrl : null);
     mostrarErro('');
     el('dialogo-titulo').textContent = item ? 'Editar título' : 'Adicionar título';
 
@@ -427,7 +461,8 @@
       campos.type.value = item.type;
       campos.status.value = item.status;
       campos.year.value = item.year === null ? '' : item.year;
-      campos.seasons.value = item.seasons === null ? '' : item.seasons;
+      campos.season.value = item.season === null ? '' : item.season;
+      campos.episode.value = item.episode === null ? '' : item.episode;
       campos.watchedOn.value = item.watchedOn || '';
       campos.genres.value = item.genres.join(', ');
       campos.notes.value = item.notes;
@@ -449,7 +484,9 @@
       type: campos.type.value,
       status: campos.status.value,
       year: campos.year.value,
-      seasons: campos.seasons.value,
+      season: campos.season.value,
+      episode: campos.episode.value,
+      posterUrl: posterAtual,
       watchedOn: campos.watchedOn.value,
       rating: campos.rating.value,
       genres: campos.genres.value,
@@ -630,6 +667,7 @@
     definirNota(0);
     el('seletor-nota').focus();
   });
+  el('remover-poster').addEventListener('click', function () { definirPoster(null); });
   campoTitulo.addEventListener('input', aoDigitarTitulo);
   campoTitulo.addEventListener('keydown', aoTeclarTitulo);
   campoTitulo.addEventListener('blur', fecharSugestoes);
