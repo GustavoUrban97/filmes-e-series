@@ -2,6 +2,8 @@
 
 Site pessoal, com login, para registrar filmes e séries: o que você já assistiu, está assistindo e quer ver.
 
+**Acesse:** https://gustavourban97.github.io/filmes-e-series/
+
 ## Funcionalidades
 
 - Login com e-mail e senha, com cadastro fechado

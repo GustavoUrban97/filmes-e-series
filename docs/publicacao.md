@@ -21,6 +21,10 @@ Em **Settings > Pages** do repositório:
 
 O arquivo `.nojekyll` faz o GitHub servir os arquivos como estão, sem processá-los com o Jekyll.
 
+## Por que o repositório é público
+
+O GitHub Pages gratuito só publica a partir de repositório público. Isso deixa visíveis o código e a chave publishable do Supabase, o que é previsto: sem login, o banco não entrega nenhum dado. Nunca envie ao repositório a chave secreta do Supabase, senhas ou backups da lista.
+
 ## Depois de uma atualização
 
-Os dados ficam no navegador e não são afetados por uma nova publicação. Eles dependem do endereço do site: mudar o nome do repositório ou o nome de usuário muda o endereço, e a lista salva não acompanha. Antes de uma mudança assim, exporte um backup para importá-lo no novo endereço.
+Os dados ficam no banco e não são afetados por uma nova publicação. Se você alterar a estrutura da tabela, aplique a mudança também no SQL Editor do Supabase.
