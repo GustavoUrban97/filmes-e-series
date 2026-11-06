@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Filmes e Séries</title>
+  <meta name="description" content="Registro pessoal de filmes e séries assistidos.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topo">
+    <div>
+      <h1>Filmes e Séries</h1>
+      <p class="subtitulo">O que você já viu, está vendo e quer ver.</p>
+    </div>
+    <button type="button" class="botao botao-primario" id="botao-adicionar">Adicionar título</button>
+  </header>
+
+  <main>
+    <div class="aviso" id="aviso-armazenamento" role="alert" hidden>
+      Este navegador está bloqueando o armazenamento local. O que você adicionar agora será perdido ao fechar a página.
+    </div>
+
+    <section aria-label="Resumo">
+      <dl class="resumo" id="resumo"></dl>
+    </section>
+
+    <section class="filtros" aria-label="Busca e filtros">
+      <label class="campo campo-busca">
+        <span>Buscar</span>
+        <input type="search" id="filtro-busca" placeholder="Título, gênero ou anotação" autocomplete="off">
+      </label>
+      <label class="campo">
+        <span>Tipo</span>
+        <select id="filtro-tipo">
+          <option value="">Todos</option>
+          <option value="movie">Filmes</option>
+          <option value="series">Séries</option>
+        </select>
+      </label>
+      <label class="campo">
+        <span>Situação</span>
+        <select id="filtro-situacao">
+          <option value="">Todas</option>
+          <option value="watched">Assistido</option>
+          <option value="watching">Assistindo</option>
+          <option value="planned">Quero ver</option>
+        </select>
+      </label>
+      <label class="campo">
+        <span>Ordenar por</span>
+        <select id="filtro-ordem">
+          <option value="recent">Adicionados recentemente</option>
+          <option value="watchedOn">Vistos recentemente</option>
+          <option value="title">Título (A–Z)</option>
+          <option value="rating">Maior nota</option>
+          <option value="year">Ano de lançamento</option>
+        </select>
+      </label>
+    </section>
+
+    <section aria-label="Títulos">
+      <p class="contagem" id="contagem" aria-live="polite"></p>
+      <ul class="lista" id="lista"></ul>
+      <div class="vazio" id="vazio" hidden>
+        <p id="vazio-texto"></p>
+        <button type="button" class="botao" id="vazio-acao"></button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="rodape">
+    <div>
+      <h2>Seus dados</h2>
+      <p>Tudo fica salvo só neste navegador. Exporte um backup de vez em quando e use o mesmo arquivo para levar a lista a outro aparelho.</p>
+    </div>
+    <div class="rodape-acoes">
+      <button type="button" class="botao" id="botao-exportar">Exportar backup</button>
+      <button type="button" class="botao" id="botao-importar">Importar backup</button>
+      <input type="file" id="arquivo-importar" accept="application/json,.json" hidden>
+    </div>
+  </footer>
+
+  <dialog class="dialogo" id="dialogo" aria-labelledby="dialogo-titulo">
+    <form id="formulario" novalidate>
+      <h2 id="dialogo-titulo">Adicionar título</h2>
+      <p class="erro" id="formulario-erro" role="alert" hidden></p>
+
+      <label class="campo">
+        <span>Título</span>
+        <input type="text" name="title" maxlength="200" required autocomplete="off">
+      </label>
+
+      <div class="linha">
+        <label class="campo">
+          <span>Tipo</span>
+          <select name="type">
+            <option value="movie">Filme</option>
+            <option value="series">Série</option>
+          </select>
+        </label>
+        <label class="campo">
+          <span>Situação</span>
+          <select name="status">
+            <option value="watched">Assistido</option>
+            <option value="watching">Assistindo</option>
+            <option value="planned">Quero ver</option>
+          </select>
+        </label>
+      </div>
+
+      <div class="linha">
+        <label class="campo">
+          <span>Ano de lançamento</span>
+          <input type="number" name="year" inputmode="numeric" placeholder="Opcional">
+        </label>
+        <label class="campo" data-somente="series">
+          <span>Temporadas vistas</span>
+          <input type="number" name="seasons" min="0" inputmode="numeric" placeholder="Opcional">
+        </label>
+      </div>
+
+      <div class="linha" data-somente="watched">
+        <label class="campo">
+          <span>Visto em</span>
+          <input type="date" name="watchedOn">
+        </label>
+        <label class="campo">
+          <span>Nota</span>
+          <select name="rating">
+            <option value="">Sem nota</option>
+            <option value="10">10</option>
+            <option value="9">9</option>
+            <option value="8">8</option>
+            <option value="7">7</option>
+            <option value="6">6</option>
+            <option value="5">5</option>
+            <option value="4">4</option>
+            <option value="3">3</option>
+            <option value="2">2</option>
+            <option value="1">1</option>
+          </select>
+        </label>
+      </div>
+
+      <label class="campo">
+        <span>Gêneros</span>
+        <input type="text" name="genres" placeholder="Separados por vírgula: drama, suspense" autocomplete="off">
+      </label>
+
+      <label class="campo">
+        <span>Anotações</span>
+        <textarea name="notes" rows="3" maxlength="2000"></textarea>
+      </label>
+
+      <div class="dialogo-acoes">
+        <button type="button" class="botao" id="botao-cancelar">Cancelar</button>
+        <button type="submit" class="botao botao-primario">Salvar</button>
+      </div>
+    </form>
+  </dialog>
+
+  <div class="mensagem" id="mensagem" role="status" hidden></div>
+
+  <script src="js/store.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

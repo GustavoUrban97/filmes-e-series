@@ -1,0 +1,10 @@
+# Configuração local do Claude Code
+.claude/
+
+# Backups exportados pelo site
+filmes-e-series-*.json
+
+# Arquivos do sistema
+Thumbs.db
+Desktop.ini
+.DS_Store
