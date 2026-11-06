@@ -1,5 +1,10 @@
 # Histórico de mudanças
 
+## 7.1.0 - 2026-11-06
+
+- Salvar a avaliação volta à tela de onde você veio, no mesmo ponto da página
+- Seção **Continue assistindo** no topo da biblioteca, com **+1 episódio** nas séries e nos animes em andamento
+
 ## 7.0.0 - 2026-11-06
 
 - Animes separados das séries, com a aba **Animes** na biblioteca e em **Para você**

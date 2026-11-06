@@ -33,7 +33,7 @@ Clique em um cartaz para abrir a página do título. Nela você pode:
 - mudar o status entre **Quero ver**, **Vendo** e **Visto**;
 - dar a nota e informar a data, se já assistiu;
 - escrever anotações, cuja primeira linha aparece no cartaz;
-- clicar em **Salvar avaliação** para gravar tudo isso.
+- clicar em **Salvar avaliação** para gravar tudo isso e voltar à tela de onde você veio.
 
 > Ao mudar um título de **Visto** para outro status, a nota e a data são apagadas ao salvar.
 
@@ -60,7 +60,7 @@ Na página de uma série ligada ao TMDB, escolha a temporada e marque cada epis�
 
 Marcar um episódio de uma série em **Quero ver** muda o status para **Vendo**. Marcar todos não muda o status para **Visto** sozinho.
 
-Nas séries com o status **Vendo**, o botão **+1 episódio** marca o próximo, tanto no cartaz quanto na página, e passa para a temporada seguinte quando a atual termina.
+Nas séries e nos animes com o status **Vendo**, o botão **+1 episódio** marca o próximo e passa para a temporada seguinte quando a atual termina. O botão aparece na seção **Continue assistindo**, no topo da biblioteca, além do cartaz e da página do título. A seção respeita as abas, com o mais recente primeiro, e some enquanto você usa a busca ou os filtros.
 
 Em séries sem ligação com o TMDB, preencha **Temporada** e **Último episódio** e salve. Nelas, o **+1 episódio** apenas avança o número.
 

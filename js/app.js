@@ -204,8 +204,9 @@
       /* Só volta ao topo ao chegar na tela: salvar uma sugestão não deve mudar a rolagem. */
       var chegando = el('tela-recomendacoes').hidden;
       mostrarTela('recomendacoes');
-      carregarRecomendacoes();
       if (chegando) window.scrollTo(0, 0);
+      /* As sugestões chegam depois: a rolagem só pode voltar com a lista desenhada. */
+      carregarRecomendacoes().then(restaurarRolagem);
     } else if (rota.nome === 'diario') {
       diarioLimite = DIARIO_POR_VEZ;
       mostrarTela('diario');
@@ -225,11 +226,29 @@
       renderizarDetalhe(item);
       window.scrollTo(0, 0);
     } else {
-      paginaAtual = 1;
+      if (rolagemVolta === null) paginaAtual = 1;
       mostrarTela('biblioteca');
       renderizarBiblioteca();
     }
     renderizarContadores();
+    if (rota.nome !== 'recomendacoes') restaurarRolagem();
+  }
+
+  /* Volta da página do título para a tela de origem, no mesmo ponto da rolagem. */
+
+  var origemDetalhe = '#/';
+  var rolagemOrigem = 0;
+  var rolagemVolta = null;
+
+  function voltarDoDetalhe() {
+    rolagemVolta = rolagemOrigem;
+    location.hash = origemDetalhe;
+  }
+
+  function restaurarRolagem() {
+    if (rolagemVolta === null) return;
+    window.scrollTo(0, rolagemVolta);
+    rolagemVolta = null;
   }
 
   /* Biblioteca */
@@ -374,22 +393,63 @@
       texto.appendChild(criar('p', 'cartaz-citacao', '“' + item.notes.split('\n')[0] + '”'));
     }
 
-    if (item.type === 'series' && item.status === 'watching') {
-      var maisUm = criar('button', 'botao cartaz-mais', '+1 episódio');
-      maisUm.type = 'button';
-      maisUm.dataset.maisUm = item.id;
-      maisUm.setAttribute('aria-label', 'Marcar mais um episódio de ' + item.title);
-      maisUm.addEventListener('click', function () { marcarEpisodio(item, maisUm); });
-      texto.appendChild(maisUm);
-    }
+    if (emAndamento(item)) texto.appendChild(criarBotaoMaisUm(item, 'botao cartaz-mais'));
 
     cartaz.appendChild(texto);
     return cartaz;
   }
 
-  function filtrosAtivos() {
-    return Boolean(busca.value.trim() || tipoAtivo || filtroGenero.value || filtroAno.value ||
+  function emAndamento(item) {
+    return item.type === 'series' && item.status === 'watching';
+  }
+
+  function criarBotaoMaisUm(item, classe) {
+    var maisUm = criar('button', classe, '+1 episódio');
+    maisUm.type = 'button';
+    maisUm.dataset.maisUm = item.id;
+    maisUm.setAttribute('aria-label', 'Marcar mais um episódio de ' + item.title);
+    maisUm.addEventListener('click', function () { marcarEpisodio(item, maisUm); });
+    return maisUm;
+  }
+
+  function criarItemContinuar(item) {
+    var linha = criar('li', 'continuar-item');
+
+    var poster = criar('div', 'continuar-poster');
+    preencherPoster(poster, item.posterUrl, item.title, 'w185');
+    linha.appendChild(poster);
+
+    var texto = criar('div');
+    var link = criar('a', 'continuar-titulo', item.title);
+    link.href = '#/titulo/' + item.id;
+    texto.appendChild(link);
+    var progresso = progressoCurto(item);
+    texto.appendChild(criar('p', 'continuar-progresso',
+      progresso ? 'Visto até ' + progresso : 'Nenhum episódio marcado'));
+    linha.appendChild(texto);
+
+    linha.appendChild(criarBotaoMaisUm(item, 'botao botao-primario'));
+    return linha;
+  }
+
+  /* Segue as abas, mas sai de cena durante uma busca ou um filtro, para não ocupar os resultados. */
+  function renderizarContinuar(todos, quero) {
+    var itens = quero || filtrosDeBuscaAtivos() ? [] : todos.filter(function (i) {
+      return emAndamento(i) && pertenceAba(i, tipoAtivo);
+    }).sort(porCampoDesc('updatedAt'));
+    el('continuar').hidden = itens.length === 0;
+    var destino = el('continuar-lista');
+    destino.textContent = '';
+    itens.forEach(function (i) { destino.appendChild(criarItemContinuar(i)); });
+  }
+
+  function filtrosDeBuscaAtivos() {
+    return Boolean(busca.value.trim() || filtroGenero.value || filtroAno.value ||
       filtroNota.value || filtroSituacao.value);
+  }
+
+  function filtrosAtivos() {
+    return Boolean(tipoAtivo) || filtrosDeBuscaAtivos();
   }
 
   function limparFiltros() {
@@ -456,6 +516,7 @@
     renderizarAbas(base);
     renderizarMetricas(todos);
     renderizarContadores();
+    renderizarContinuar(todos, quero);
 
     el('biblioteca-total').textContent = String(base.length);
     el('biblioteca-total-rotulo').textContent = base.length === 1 ? 'título catalogado' : 'títulos catalogados';
@@ -549,9 +610,10 @@
       renderizarProgresso(resultado.item);
       renderizarEpisodios(resultado.item, proximo.season);
     } else {
+      var regiao = botao.closest('#continuar') ? el('continuar') : lista;
       renderizarBiblioteca();
       /* A lista é redesenhada: devolve o foco ao botão para quem usa o teclado. */
-      var novoBotao = lista.querySelector('[data-mais-um="' + item.id + '"]');
+      var novoBotao = regiao.querySelector('[data-mais-um="' + item.id + '"]');
       if (novoBotao) novoBotao.focus();
     }
     avisar(item.title + ': T' + proximo.season + ' · E' + episodio + ' marcado');
@@ -889,6 +951,7 @@
     el('det-episodios').hidden = true;
     numeroDetalhe++;
     document.title = item.title + ' · Claquete';
+    el('det-voltar').href = origemDetalhe;
 
     el('det-fundo').hidden = true;
     el('det-fundo').removeAttribute('src');
@@ -944,9 +1007,8 @@
       return;
     }
     el('det-erro').hidden = true;
-    renderizarDetalhe(resultado.item);
-    renderizarContadores();
-    avisar('Avaliação salva');
+    avisar('Salvo: ' + resultado.item.title);
+    voltarDoDetalhe();
   }
 
   async function removerDetalhe() {
@@ -1868,7 +1930,12 @@
     }
   }
 
-  window.addEventListener('hashchange', function () {
+  window.addEventListener('hashchange', function (evento) {
+    var anterior = new URL(evento.oldURL).hash;
+    if (rotaAtual().nome === 'titulo' && anterior.indexOf('#/titulo/') !== 0) {
+      origemDetalhe = anterior || '#/';
+      rolagemOrigem = window.scrollY;
+    }
     if (rotaAtual().nome !== 'titulo') document.title = 'Claquete';
     if (dialogo.open) dialogo.close();
     aplicarRota();
@@ -1943,6 +2010,10 @@
     el('seletor-nota').focus();
   });
   el('det-form').addEventListener('submit', aoSalvarDetalhe);
+  el('det-voltar').addEventListener('click', function (evento) {
+    evento.preventDefault();
+    voltarDoDetalhe();
+  });
   el('det-remover').addEventListener('click', removerDetalhe);
   el('det-editar').addEventListener('click', function () { abrirModal(Store.obter(detalheId)); });
   el('det-vincular').addEventListener('click', function () { abrirModal(Store.obter(detalheId)); });

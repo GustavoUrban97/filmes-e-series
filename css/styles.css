@@ -1537,3 +1537,64 @@ kbd {
   .aba { flex: none; padding-right: 12px; padding-left: 12px; white-space: nowrap; }
   .selo-nota { top: 36px; }
 }
+
+/* Continue assistindo */
+
+.continuar { margin-bottom: 24px; }
+
+.continuar h2 { margin-bottom: 12px; font-size: 20px; font-weight: 600; line-height: 28px; }
+
+.continuar-lista {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  list-style: none;
+}
+
+.continuar-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px 10px 10px;
+  border: 1px solid rgb(245 183 0 / 0.3);
+  border-radius: var(--raio-m);
+  background: var(--superficie);
+}
+
+.continuar-poster {
+  position: relative;
+  aspect-ratio: 2 / 3;
+  overflow: hidden;
+  border-radius: var(--raio-p);
+  background: var(--superficie-alta);
+}
+
+.continuar-poster img { display: block; width: 100%; height: 100%; object-fit: cover; }
+
+.continuar-poster .cartaz-inicial { font-size: 24px; }
+
+.continuar-titulo {
+  display: block;
+  overflow: hidden;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 22px;
+  text-decoration: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.continuar-titulo:hover { color: var(--ambar-claro); }
+
+/* Estende a área de clique do título para o cartão inteiro. */
+.continuar-titulo::before { content: ""; position: absolute; inset: 0; }
+
+.continuar-progresso { margin-top: 2px; color: var(--texto-suave); font-size: 13px; }
+
+.continuar-item .botao { position: relative; z-index: 1; min-height: 44px; white-space: nowrap; }
+
+@media (max-width: 860px) {
+  .continuar-lista { grid-template-columns: minmax(0, 1fr); }
+}
