@@ -1,5 +1,8 @@
 # Configuração local do Claude Code
-.claude/
+.claude/*
+
+# Os agentes fazem parte do projeto
+!.claude/agents/
 
 # Backups exportados pelo site
 filmes-e-series-*.json
