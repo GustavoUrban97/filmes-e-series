@@ -10,7 +10,7 @@ O site guarda os dados e faz o login pelo [Supabase](https://supabase.com). Este
 ## 2. Criar a tabela
 
 1. Abra **SQL Editor** no painel do projeto.
-2. Cole o conteúdo de [`supabase/schema.sql`](../supabase/schema.sql) e execute.
+2. Cole o conteúdo de [`supabase/schema.sql`](../../supabase/schema.sql) e execute.
 
 ## 3. Fechar o cadastro e criar a sua conta
 
@@ -21,7 +21,7 @@ O site guarda os dados e faz o login pelo [Supabase](https://supabase.com). Este
 
 1. Em **Project Settings > API Keys**, copie a **publishable key** (começa com `sb_publishable_`).
 2. Copie também a URL do projeto (`https://xxxx.supabase.co`).
-3. Preencha os dois valores em [`js/config.js`](../js/config.js).
+3. Preencha os dois valores no bloco `PRODUCAO` de [`js/config.js`](../../js/config.js). O bloco `TESTES` é do [ambiente de testes](ambiente-de-testes.md).
 
 **Nunca use a chave secreta (`sb_secret_` ou `service_role`) no site.** Ela ignora todas as regras de acesso.
 
@@ -32,7 +32,7 @@ A busca usa o [TMDB](https://www.themoviedb.org). O token dele fica guardado no 
 1. Crie uma conta no TMDB e, em **Settings > API**, solicite uma chave para uso pessoal e não comercial.
 2. Copie o **API Read Access Token**. Esse é o token longo, não a API Key curta.
 3. No Supabase, abra **Edge Functions > Secrets** e crie o segredo `TMDB_TOKEN` com esse valor.
-4. Em **Edge Functions**, crie uma função pelo editor, cole o conteúdo de [`supabase/functions/buscar-titulos/index.ts`](../supabase/functions/buscar-titulos/index.ts) e publique. Mantenha **Verify JWT** ativo. O site chama a função pelo nome `swift-handler`: se ela tiver outro nome, atualize a chamada em `buscarTitulos`, no arquivo `js/store.js`.
+4. Em **Edge Functions**, crie uma função pelo editor, cole o conteúdo de [`supabase/functions/buscar-titulos/index.ts`](../../supabase/functions/buscar-titulos/index.ts) e publique. Mantenha **Verify JWT** ativo. O site chama a função pelo nome `swift-handler`: se ela tiver outro nome, atualize a chamada em `buscarTitulos`, no arquivo `js/store.js`.
 
 Sem esses passos, o site continua funcionando, mas os campos precisam ser preenchidos manualmente.
 

@@ -1,6 +1,6 @@
 # Formato dos dados
 
-Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/schema.sql`](../supabase/schema.sql). Lá, os campos usam nomes como `watched_on` e `created_at`, além de `user_id` para indicar a conta dona de cada linha. O arquivo de backup usa o formato abaixo, sem `user_id`.
+Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/schema.sql`](../../supabase/schema.sql). Lá, os campos usam nomes como `watched_on` e `created_at`, além de `user_id` para indicar a conta dona de cada linha. O arquivo de backup usa o formato abaixo, sem `user_id`.
 
 ```json
 {
