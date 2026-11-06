@@ -60,6 +60,8 @@ Toda a interface usa **Inter**, servida pelo próprio site a partir de `fonts/`,
 - **Estrelas:** âmbar quando preenchidas, com meia estrela, sempre acompanhadas do número.
 - **Modal de adicionar:** resultados à esquerda e prévia à direita, com faixa âmbar no topo.
 - **Status:** controle segmentado entre Quero ver, Vendo e Visto.
+- **Episódio:** caixa de marcação âmbar, com data e nota próprias depois de marcado.
+- **Gráficos:** uma só série em âmbar, com barras finas e pontas arredondadas. Colunas rotulam apenas o maior valor, e os demais aparecem na dica; cada gráfico de colunas traz uma tabela equivalente para leitores de tela.
 
 ## Ícone
 

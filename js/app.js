@@ -62,13 +62,15 @@
     el('aviso-geral-acao').hidden = !comRepeticao;
   }
 
-  /* tela: carregando, login, biblioteca, titulo ou nenhuma. */
+  /* tela: carregando, login, biblioteca, titulo, diario, estatisticas ou nenhuma. */
   function mostrarTela(tela) {
-    var dentro = tela === 'biblioteca' || tela === 'titulo';
+    var dentro = ['biblioteca', 'titulo', 'diario', 'estatisticas'].indexOf(tela) >= 0;
     el('carregando').hidden = tela !== 'carregando';
     el('tela-login').hidden = tela !== 'login';
     el('tela-biblioteca').hidden = tela !== 'biblioteca';
     el('tela-titulo').hidden = tela !== 'titulo';
+    el('tela-diario').hidden = tela !== 'diario';
+    el('tela-estatisticas').hidden = tela !== 'estatisticas';
     el('topo').hidden = !dentro;
     el('rodape').hidden = !dentro;
   }
@@ -88,6 +90,33 @@
 
   function textoEstrelas(nota) {
     return formatarEstrelas(nota) + (nota === 2 ? ' estrela' : ' estrelas');
+  }
+
+  function hojeLocal() {
+    var hoje = new Date();
+    return hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0') + '-' +
+      String(hoje.getDate()).padStart(2, '0');
+  }
+
+  function formatarTempo(minutos) {
+    if (minutos < 60) return minutos + ' min';
+    return Math.round(minutos / 60).toLocaleString('pt-BR') + ' h';
+  }
+
+  /* Soma a duração dos filmes assistidos e dos episódios marcados. */
+  function calcularTempo() {
+    var minutos = 0;
+    var semDuracao = 0;
+    Store.listar().forEach(function (i) {
+      if (i.type !== 'movie' || i.status !== 'watched') return;
+      if (i.runtime) minutos += i.runtime;
+      else semDuracao++;
+    });
+    Store.listarVistas().forEach(function (v) {
+      if (v.runtime) minutos += v.runtime;
+      else semDuracao++;
+    });
+    return { minutos: minutos, semDuracao: semDuracao };
   }
 
   function progressoCurto(item) {
@@ -135,6 +164,8 @@
   function rotaAtual() {
     var hash = location.hash.replace(/^#\/?/, '');
     if (hash === 'quero-assistir') return { nome: 'quero' };
+    if (hash === 'diario') return { nome: 'diario' };
+    if (hash === 'estatisticas') return { nome: 'estatisticas' };
     if (hash.indexOf('titulo/') === 0) return { nome: 'titulo', id: hash.slice(7) };
     return { nome: 'biblioteca' };
   }
@@ -142,12 +173,27 @@
   function aplicarRota() {
     if (!idUsuarioAtual || !listaCarregada) return;
     var rota = rotaAtual();
-    var navBiblioteca = el('nav-biblioteca');
-    var navQuero = el('nav-quero');
-    navBiblioteca.removeAttribute('aria-current');
-    navQuero.removeAttribute('aria-current');
+    var navegacao = {
+      biblioteca: el('nav-biblioteca'),
+      quero: el('nav-quero'),
+      diario: el('nav-diario'),
+      estatisticas: el('nav-estatisticas')
+    };
+    Object.keys(navegacao).forEach(function (nome) {
+      if (nome === rota.nome) navegacao[nome].setAttribute('aria-current', 'page');
+      else navegacao[nome].removeAttribute('aria-current');
+    });
 
-    if (rota.nome === 'titulo') {
+    if (rota.nome === 'diario') {
+      diarioLimite = DIARIO_POR_VEZ;
+      mostrarTela('diario');
+      renderizarDiario();
+      window.scrollTo(0, 0);
+    } else if (rota.nome === 'estatisticas') {
+      mostrarTela('estatisticas');
+      renderizarEstatisticas();
+      window.scrollTo(0, 0);
+    } else if (rota.nome === 'titulo') {
       var item = Store.obter(rota.id);
       if (!item) {
         location.hash = '#/';
@@ -157,7 +203,6 @@
       renderizarDetalhe(item);
       window.scrollTo(0, 0);
     } else {
-      (rota.nome === 'quero' ? navQuero : navBiblioteca).setAttribute('aria-current', 'page');
       paginaAtual = 1;
       mostrarTela('biblioteca');
       renderizarBiblioteca();
@@ -185,10 +230,7 @@
         .toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
       : '–';
 
-    var fila = todos.filter(function (i) { return i.status === 'planned'; }).length;
-    var vendo = todos.filter(function (i) { return i.status === 'watching'; }).length;
-    el('metrica-fila').textContent = String(fila);
-    el('metrica-fila-detalhe').textContent = 'para ver · ' + vendo + ' assistindo';
+    el('metrica-tempo').textContent = formatarTempo(calcularTempo().minutos);
 
     var assistidos = todos.filter(function (i) { return i.status === 'watched'; });
     var contagem = {};
@@ -433,11 +475,48 @@
     gravarPreferencia(CHAVE_VISTA, emLista ? 'lista' : 'grade');
   }
 
+  /* Define o próximo episódio; em título ligado ao TMDB, passa de temporada quando esta termina. */
+  async function proximoEpisodio(item) {
+    var episodio = (item.episode || 0) + 1;
+    if (!item.tmdbId) return { season: item.season === null ? 1 : item.season, episode: episodio, runtime: null };
+
+    var resposta = await Store.buscarDetalhes(item.tmdbId, item.type);
+    if (resposta.erro) return { erro: resposta.erro };
+    var temporadas = resposta.detalhes.seasons;
+    var numero = item.season !== null ? item.season : temporadas.length ? temporadas[0].number : 1;
+    var atual = temporadas.filter(function (s) { return s.number === numero; })[0];
+    if (atual && episodio > atual.episodes) {
+      var seguinte = temporadas.filter(function (s) { return s.number > numero; })[0];
+      if (!seguinte) return { erro: 'Você já marcou o último episódio disponível.' };
+      numero = seguinte.number;
+      episodio = 1;
+    }
+
+    var duracao = resposta.detalhes.runtime;
+    var temporada = await Store.buscarTemporada(item.tmdbId, numero);
+    if (temporada.temporada) {
+      var dados = temporada.temporada.episodes.filter(function (e) { return e.number === episodio; })[0];
+      if (dados && dados.runtime) duracao = dados.runtime;
+    }
+    return { season: numero, episode: episodio, runtime: duracao };
+  }
+
   async function marcarEpisodio(item, botao) {
     var atual = Store.obter(item.id);
     botao.disabled = true;
-    var episodio = (atual.episode || 0) + 1;
-    var resultado = await Store.salvar(Object.assign({}, atual, { episode: episodio }));
+    var proximo = await proximoEpisodio(atual);
+    if (proximo.erro) {
+      botao.disabled = false;
+      avisar(proximo.erro);
+      return;
+    }
+    var episodio = proximo.episode;
+    var resultado = await Store.marcarEpisodios(atual.id, [{
+      season: proximo.season,
+      episode: episodio,
+      watchedOn: hojeLocal(),
+      runtime: proximo.runtime
+    }]);
     botao.disabled = false;
     if (resultado.erro) {
       avisar(resultado.erro);
@@ -445,14 +524,14 @@
     }
     if (rotaAtual().nome === 'titulo') {
       renderizarProgresso(resultado.item);
-      el('det-episodio').value = episodio;
+      renderizarEpisodios(resultado.item, proximo.season);
     } else {
       renderizarBiblioteca();
       /* A lista é redesenhada: devolve o foco ao botão para quem usa o teclado. */
       var novoBotao = lista.querySelector('[data-mais-um="' + item.id + '"]');
       if (novoBotao) novoBotao.focus();
     }
-    avisar(item.title + ': episódio ' + episodio + ' marcado');
+    avisar(item.title + ': T' + proximo.season + ' · E' + episodio + ' marcado');
   }
 
   /* Página de detalhes */
@@ -521,7 +600,10 @@
   function renderizarProgresso(item) {
     var serie = item.type === 'series';
     el('det-progresso').hidden = !serie;
-    el('det-progresso-campos').hidden = !serie;
+    /* Em título ligado ao TMDB, o progresso vem da lista de episódios marcados. */
+    el('det-progresso-campos').hidden = !serie || Boolean(item.tmdbId);
+    el('det-temporada').value = item.season === null ? '' : item.season;
+    el('det-episodio').value = item.episode === null ? '' : item.episode;
     if (!serie) return;
 
     var texto = [];
@@ -535,10 +617,190 @@
     el('det-barra').hidden = !comBarra;
     el('det-barra-texto').hidden = !comBarra;
     if (comBarra) {
-      var vistos = Math.min(item.episode, temporada.episodes);
+      var marcados = Store.listarVistas(item.id).filter(function (v) { return v.season === item.season; }).length;
+      var vistos = Math.min(marcados || item.episode, temporada.episodes);
       el('det-barra-valor').style.width = Math.round((vistos / temporada.episodes) * 100) + '%';
       el('det-barra-texto').textContent = vistos + ' de ' + temporada.episodes + ' episódios da temporada';
     }
+  }
+
+  /* Lista de episódios */
+
+  var temporadaAberta = null;
+  var episodiosAbertos = [];
+  var numeroEpisodios = 0;
+
+  function renderizarEpisodios(item, temporadaPedida) {
+    var bloco = el('det-episodios');
+    bloco.hidden = item.type !== 'series' || !item.tmdbId || !detalheTemporadas.length;
+    if (bloco.hidden) return;
+
+    function existe(numero) { return detalheTemporadas.some(function (s) { return s.number === numero; }); }
+    if (existe(temporadaPedida)) temporadaAberta = temporadaPedida;
+    else if (!existe(temporadaAberta)) temporadaAberta = existe(item.season) ? item.season : detalheTemporadas[0].number;
+
+    var botoes = el('det-temporadas');
+    botoes.textContent = '';
+    detalheTemporadas.forEach(function (temporada) {
+      var botao = criar('button', '', 'Temporada ' + temporada.number);
+      botao.type = 'button';
+      botao.setAttribute('aria-pressed', String(temporada.number === temporadaAberta));
+      botao.addEventListener('click', function () { renderizarEpisodios(Store.obter(item.id), temporada.number); });
+      botoes.appendChild(botao);
+    });
+    carregarEpisodios(item);
+  }
+
+  async function carregarEpisodios(item) {
+    var numero = ++numeroEpisodios;
+    var temporada = temporadaAberta;
+    var resposta = await Store.buscarTemporada(item.tmdbId, temporada);
+    if (numero !== numeroEpisodios) return;
+    var estado = el('det-episodios-estado');
+    if (resposta.erro) {
+      estado.textContent = resposta.erro;
+      el('det-lista-episodios').textContent = '';
+      el('det-marcar-temporada').hidden = true;
+      return;
+    }
+    episodiosAbertos = resposta.temporada.episodes;
+    estado.textContent = episodiosAbertos.length ? '' : 'O TMDB ainda não tem episódios nesta temporada.';
+    desenharEpisodios(item.id);
+  }
+
+  function vistaDe(idTitulo, episodio) {
+    return Store.listarVistas(idTitulo).filter(function (v) {
+      return v.season === temporadaAberta && v.episode === episodio;
+    })[0];
+  }
+
+  function desenharEpisodios(idTitulo, focoEpisodio) {
+    var lista2 = el('det-lista-episodios');
+    lista2.textContent = '';
+    episodiosAbertos.forEach(function (ep) { lista2.appendChild(criarLinhaEpisodio(idTitulo, ep)); });
+    el('det-marcar-temporada').hidden = !episodiosAbertos.length ||
+      episodiosAbertos.every(function (ep) { return vistaDe(idTitulo, ep.number); });
+    if (focoEpisodio !== undefined) {
+      var alvo = lista2.querySelector('[data-episodio="' + focoEpisodio + '"]');
+      if (alvo) alvo.focus();
+    }
+  }
+
+  function aposMudarEpisodios(item, focoEpisodio) {
+    renderizarProgresso(item);
+    definirStatusDetalhe(item.status);
+    renderizarContadores();
+    desenharEpisodios(item.id, focoEpisodio);
+  }
+
+  function criarOpcoesNota(selecionada) {
+    var select = criar('select');
+    var vazia = criar('option', '', 'Sem nota');
+    vazia.value = '';
+    select.appendChild(vazia);
+    for (var nota = 10; nota >= 1; nota--) {
+      var opcao = criar('option', '', '★ ' + formatarEstrelas(nota));
+      opcao.value = String(nota);
+      select.appendChild(opcao);
+    }
+    select.value = selecionada ? String(selecionada) : '';
+    return select;
+  }
+
+  function criarLinhaEpisodio(idTitulo, ep) {
+    var vista = vistaDe(idTitulo, ep.number);
+    var temporada = temporadaAberta;
+    var linha = criar('li', 'episodio');
+    var nome = 'E' + ep.number + (ep.name ? ' • ' + ep.name : '');
+
+    var marca = criar('label', 'ep-marca');
+    var caixa = criar('input');
+    caixa.type = 'checkbox';
+    caixa.checked = Boolean(vista);
+    caixa.dataset.episodio = ep.number;
+    caixa.setAttribute('aria-label', 'Marcar como visto: ' + nome);
+    var desenho = criar('span', 'ep-caixa');
+    desenho.appendChild(icone('check'));
+    marca.appendChild(caixa);
+    marca.appendChild(desenho);
+    linha.appendChild(marca);
+
+    caixa.addEventListener('change', async function () {
+      caixa.disabled = true;
+      var resultado = caixa.checked
+        ? await Store.marcarEpisodios(idTitulo, [{
+          season: temporada,
+          episode: ep.number,
+          watchedOn: hojeLocal(),
+          runtime: ep.runtime
+        }])
+        : await Store.desmarcarEpisodio(idTitulo, temporada, ep.number);
+      caixa.disabled = false;
+      if (resultado.erro) {
+        caixa.checked = !caixa.checked;
+        avisar(resultado.erro);
+        return;
+      }
+      aposMudarEpisodios(resultado.item, ep.number);
+    });
+
+    var texto = criar('div');
+    var titulo = criar('p', 'ep-titulo', nome);
+    if (ep.runtime) titulo.appendChild(criar('span', 'ep-duracao', ep.runtime + ' min'));
+    texto.appendChild(titulo);
+    if (ep.overview) texto.appendChild(criar('p', 'ep-sinopse', ep.overview));
+    linha.appendChild(texto);
+
+    if (vista) {
+      var registro = criar('div', 'ep-registro');
+      var data = criar('input');
+      data.type = 'date';
+      data.value = vista.watchedOn;
+      data.setAttribute('aria-label', 'Data em que viu ' + nome);
+      data.addEventListener('change', async function () {
+        if (!data.value) {
+          data.value = vistaDe(idTitulo, ep.number).watchedOn;
+          return;
+        }
+        var resultado = await Store.atualizarVista(vistaDe(idTitulo, ep.number), { watchedOn: data.value });
+        if (resultado.erro) {
+          data.value = vistaDe(idTitulo, ep.number).watchedOn;
+          avisar(resultado.erro);
+        }
+      });
+      var nota = criarOpcoesNota(vista.rating);
+      nota.setAttribute('aria-label', 'Nota de ' + nome);
+      nota.addEventListener('change', async function () {
+        var resultado = await Store.atualizarVista(vistaDe(idTitulo, ep.number), { rating: nota.value || null });
+        if (resultado.erro) {
+          nota.value = vistaDe(idTitulo, ep.number).rating || '';
+          avisar(resultado.erro);
+        }
+      });
+      registro.appendChild(data);
+      registro.appendChild(nota);
+      linha.appendChild(registro);
+    }
+    return linha;
+  }
+
+  async function marcarTemporadaInteira() {
+    var botao = el('det-marcar-temporada');
+    var idTitulo = detalheId;
+    var hoje = hojeLocal();
+    var entradas = episodiosAbertos.filter(function (ep) { return !vistaDe(idTitulo, ep.number); }).map(function (ep) {
+      return { season: temporadaAberta, episode: ep.number, watchedOn: hoje, runtime: ep.runtime };
+    });
+    if (!entradas.length) return;
+    botao.disabled = true;
+    var resultado = await Store.marcarEpisodios(idTitulo, entradas);
+    botao.disabled = false;
+    if (resultado.erro) {
+      avisar(resultado.erro);
+      return;
+    }
+    aposMudarEpisodios(resultado.item);
+    avisar(plural(entradas.length, 'episódio marcado', 'episódios marcados') + ' com a data de hoje');
   }
 
   function preencherTmdb(item, detalhes) {
@@ -570,6 +832,12 @@
 
     detalheTemporadas = detalhes.seasons || [];
     renderizarProgresso(item);
+    renderizarEpisodios(item);
+
+    /* Filmes ligados ao TMDB antes de a duração ser guardada passam a contar nas estatísticas. */
+    if (item.type === 'movie' && !item.runtime && detalhes.runtime) {
+      Store.salvar(Object.assign({}, item, { runtime: detalhes.runtime }));
+    }
   }
 
   async function carregarDadosTmdb(item) {
@@ -587,6 +855,10 @@
   function renderizarDetalhe(item) {
     detalheId = item.id;
     detalheTemporadas = [];
+    temporadaAberta = null;
+    episodiosAbertos = [];
+    numeroEpisodios++;
+    el('det-episodios').hidden = true;
     numeroDetalhe++;
     document.title = item.title + ' · Claquete';
 
@@ -921,6 +1193,7 @@
         manual.posterUrl = null;
         manual.tmdbId = null;
         manual.director = null;
+        manual.runtime = null;
       }
       return manual;
     }
@@ -931,7 +1204,8 @@
       genres: escolhido.genres,
       posterUrl: escolhido.poster,
       tmdbId: escolhido.id,
-      director: detalhesEscolhido ? detalhesEscolhido.directors.join(', ') : null
+      director: detalhesEscolhido ? detalhesEscolhido.directors.join(', ') : null,
+      runtime: detalhesEscolhido && escolhido.type === 'movie' ? detalhesEscolhido.runtime : null
     };
   }
 
@@ -974,6 +1248,237 @@
     }
   }
 
+  /* Diário */
+
+  var DIARIO_POR_VEZ = 60;
+  var diarioLimite = DIARIO_POR_VEZ;
+
+  function lerData(iso) {
+    var partes = iso.split('-').map(Number);
+    return new Date(partes[0], partes[1] - 1, partes[2]);
+  }
+
+  /* Reúne títulos concluídos com data e episódios marcados, do mais recente ao mais antigo. */
+  function listarSessoes() {
+    var sessoes = [];
+    Store.listar().forEach(function (item) {
+      if (item.status !== 'watched' || !item.watchedOn) return;
+      sessoes.push({
+        data: item.watchedOn,
+        item: item,
+        apoio: item.type === 'series' ? 'Série concluída' : 'Filme',
+        nota: item.rating
+      });
+    });
+    Store.listarVistas().forEach(function (vista) {
+      var item = Store.obter(vista.titleId);
+      if (!item) return;
+      sessoes.push({
+        data: vista.watchedOn,
+        item: item,
+        apoio: 'Temporada ' + vista.season + ', episódio ' + vista.episode,
+        nota: vista.rating,
+        ordem: vista.season * 10000 + vista.episode
+      });
+    });
+    return sessoes.sort(function (a, b) {
+      if (a.data !== b.data) return a.data < b.data ? 1 : -1;
+      return porTitulo(a.item, b.item) || (b.ordem || 0) - (a.ordem || 0);
+    });
+  }
+
+  function criarSessao(sessao) {
+    var linha = criar('li', 'sessao');
+    var dia = lerData(sessao.data);
+
+    var quando = criar('time', 'sessao-data');
+    quando.dateTime = sessao.data;
+    quando.appendChild(criar('span', 'sessao-dia', String(dia.getDate()).padStart(2, '0')));
+    quando.appendChild(criar('span', 'sessao-semana', dia.toLocaleDateString('pt-BR', { weekday: 'short' }).replace('.', '')));
+    linha.appendChild(quando);
+
+    var poster = criar('div', 'sessao-poster');
+    preencherPoster(poster, sessao.item.posterUrl, sessao.item.title, 'w92');
+    linha.appendChild(poster);
+
+    var texto = criar('div');
+    var link = criar('a', 'sessao-titulo', sessao.item.title);
+    link.href = '#/titulo/' + sessao.item.id;
+    texto.appendChild(link);
+    texto.appendChild(criar('p', 'sessao-apoio', sessao.apoio));
+    linha.appendChild(texto);
+
+    if (sessao.nota) {
+      var nota = criar('span', 'sessao-nota');
+      nota.appendChild(icone('estrela'));
+      nota.appendChild(document.createTextNode(formatarEstrelas(sessao.nota)));
+      nota.setAttribute('role', 'img');
+      nota.setAttribute('aria-label', 'Nota: ' + textoEstrelas(sessao.nota) + ' de 5');
+      linha.appendChild(nota);
+    } else {
+      linha.appendChild(criar('span'));
+    }
+    return linha;
+  }
+
+  function renderizarDiario() {
+    var sessoes = listarSessoes();
+    el('diario-total').textContent = String(sessoes.length);
+    el('diario-total-rotulo').textContent = sessoes.length === 1 ? 'sessão registrada' : 'sessões registradas';
+    el('diario-vazio').hidden = sessoes.length > 0;
+
+    var semData = Store.listar().filter(function (i) { return i.status === 'watched' && !i.watchedOn; }).length;
+    el('diario-sem-data').hidden = semData === 0;
+    el('diario-sem-data').textContent = plural(semData, 'título assistido não aparece', 'títulos assistidos não aparecem') +
+      ' aqui por falta de data. Informe a data na página do título.';
+
+    var destino = el('diario-lista');
+    destino.textContent = '';
+    var mesAtual = null;
+    var grupo = null;
+    sessoes.slice(0, diarioLimite).forEach(function (sessao) {
+      var mes = sessao.data.slice(0, 7);
+      if (mes !== mesAtual) {
+        mesAtual = mes;
+        destino.appendChild(criar('h2', 'diario-mes',
+          lerData(sessao.data).toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })));
+        grupo = criar('ul', 'diario-grupo');
+        destino.appendChild(grupo);
+      }
+      grupo.appendChild(criarSessao(sessao));
+    });
+    el('diario-mais').hidden = sessoes.length <= diarioLimite;
+  }
+
+  /* Estatísticas */
+
+  function criarTabelaAcessivel(legenda, cabecalho, dados) {
+    var tabela = criar('table', 'sr');
+    tabela.appendChild(criar('caption', '', legenda));
+    var topo = criar('tr');
+    cabecalho.forEach(function (texto) { topo.appendChild(criar('th', '', texto)); });
+    tabela.appendChild(topo);
+    dados.forEach(function (dado) {
+      var linha = criar('tr');
+      linha.appendChild(criar('td', '', dado.nome));
+      linha.appendChild(criar('td', '', String(dado.valor)));
+      tabela.appendChild(linha);
+    });
+    return tabela;
+  }
+
+  /* Uma só série em âmbar: só o maior valor leva rótulo; os demais aparecem na dica. */
+  function desenharColunas(destino, legenda, cabecalho, dados, textoVazio) {
+    destino.textContent = '';
+    var maior = dados.reduce(function (m, d) { return Math.max(m, d.valor); }, 0);
+    if (!maior) {
+      destino.appendChild(criar('p', 'grafico-vazio', textoVazio));
+      return;
+    }
+    var colunas = criar('div', 'colunas');
+    var rotulos = criar('div', 'colunas-rotulos');
+    var picoMarcado = false;
+    colunas.setAttribute('aria-hidden', 'true');
+    rotulos.setAttribute('aria-hidden', 'true');
+    dados.forEach(function (dado) {
+      var coluna = criar('div', 'coluna');
+      coluna.dataset.dica = dado.nome + ': ' + dado.valor;
+      if (dado.valor === maior && !picoMarcado) {
+        coluna.appendChild(criar('span', 'coluna-pico', String(dado.valor)));
+        picoMarcado = true;
+      }
+      if (dado.valor) {
+        var barra = criar('span', 'coluna-barra');
+        barra.style.height = Math.max(2, Math.round((dado.valor / maior) * 86)) + '%';
+        coluna.appendChild(barra);
+      }
+      colunas.appendChild(coluna);
+      rotulos.appendChild(criar('span', '', dado.curto));
+    });
+    destino.appendChild(colunas);
+    destino.appendChild(rotulos);
+    destino.appendChild(criarTabelaAcessivel(legenda, cabecalho, dados));
+  }
+
+  function desenharGeneros(destino, dados) {
+    destino.textContent = '';
+    if (!dados.length) {
+      destino.appendChild(criar('p', 'grafico-vazio', 'Aparece quando você assistir a títulos com gênero informado.'));
+      return;
+    }
+    var maior = dados[0].valor;
+    var lista2 = criar('ul', 'barras-h');
+    dados.forEach(function (dado) {
+      var linha = criar('li', 'barra-h');
+      linha.appendChild(criar('span', 'barra-h-nome', dado.nome));
+      var trilho = criar('span', 'barra-h-trilho');
+      var valor = criar('span', 'barra-h-valor');
+      valor.style.width = Math.round((dado.valor / maior) * 100) + '%';
+      trilho.appendChild(valor);
+      linha.appendChild(trilho);
+      linha.appendChild(criar('span', 'barra-h-numero', String(dado.valor)));
+      lista2.appendChild(linha);
+    });
+    destino.appendChild(lista2);
+  }
+
+  function renderizarEstatisticas() {
+    var todos = Store.listar();
+    var vistas = Store.listarVistas();
+    var tempo = calcularTempo();
+
+    el('est-tempo').textContent = formatarTempo(tempo.minutos);
+    el('est-filmes').textContent = String(todos.filter(function (i) { return i.type === 'movie' && i.status === 'watched'; }).length);
+    el('est-episodios').textContent = String(vistas.length);
+    var notas = todos.filter(function (i) { return i.rating !== null; });
+    el('est-media').textContent = notas.length
+      ? (notas.reduce(function (s, i) { return s + i.rating; }, 0) / notas.length / 2)
+        .toLocaleString('pt-BR', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + ' ★'
+      : '–';
+    el('est-sem-duracao').hidden = tempo.semDuracao === 0;
+    el('est-sem-duracao').textContent = plural(tempo.semDuracao, 'sessão sem duração conhecida fica', 'sessões sem duração conhecida ficam') +
+      ' fora do tempo assistido. Em títulos antigos, use Buscar dados no TMDB ou abra a página do título.';
+
+    var sessoes = listarSessoes();
+    var meses = [];
+    var agora = new Date();
+    for (var i = 11; i >= 0; i--) {
+      var mes = new Date(agora.getFullYear(), agora.getMonth() - i, 1);
+      var chave = mes.getFullYear() + '-' + String(mes.getMonth() + 1).padStart(2, '0');
+      meses.push({
+        nome: mes.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' }),
+        curto: mes.toLocaleDateString('pt-BR', { month: 'short' }).replace('.', ''),
+        valor: sessoes.filter(function (s) { return s.data.indexOf(chave) === 0; }).length
+      });
+    }
+    desenharColunas(el('grafico-meses'), 'Sessões por mês', ['Mês', 'Sessões'], meses,
+      'Aparece quando você registrar sessões com data nos últimos 12 meses.');
+
+    var comEpisodios = {};
+    vistas.forEach(function (v) { comEpisodios[v.titleId] = true; });
+    var contagem = {};
+    todos.forEach(function (item) {
+      if (item.status !== 'watched' && !comEpisodios[item.id]) return;
+      item.genres.forEach(function (g) { contagem[g] = (contagem[g] || 0) + 1; });
+    });
+    desenharGeneros(el('grafico-generos'), Object.keys(contagem).map(function (nome) {
+      return { nome: nome, valor: contagem[nome] };
+    }).sort(function (a, b) {
+      return b.valor - a.valor || a.nome.localeCompare(b.nome, 'pt-BR');
+    }).slice(0, 8));
+
+    var faixas = [];
+    for (var nota = 1; nota <= 10; nota++) {
+      faixas.push({
+        nome: textoEstrelas(nota),
+        curto: formatarEstrelas(nota),
+        valor: notas.filter(function (t) { return t.rating === nota; }).length
+      });
+    }
+    desenharColunas(el('grafico-notas'), 'Títulos por nota', ['Nota', 'Títulos'], faixas,
+      'Aparece quando você der nota a um título.');
+  }
+
   /* Backup */
 
   function exportarBackup() {
@@ -997,6 +1502,7 @@
       plural(resultado.adicionados, 'adicionado', 'adicionados'),
       plural(resultado.atualizados, 'atualizado', 'atualizados')
     ];
+    if (resultado.episodios) partes.push(plural(resultado.episodios, 'episódio', 'episódios'));
     if (resultado.ignorados) partes.push(plural(resultado.ignorados, 'inválido ignorado', 'inválidos ignorados'));
     return partes.join(', ');
   }
@@ -1207,6 +1713,11 @@
   el('det-remover').addEventListener('click', removerDetalhe);
   el('det-editar').addEventListener('click', function () { abrirModal(Store.obter(detalheId)); });
   el('det-vincular').addEventListener('click', function () { abrirModal(Store.obter(detalheId)); });
+  el('det-marcar-temporada').addEventListener('click', marcarTemporadaInteira);
+  el('diario-mais').addEventListener('click', function () {
+    diarioLimite += DIARIO_POR_VEZ;
+    renderizarDiario();
+  });
   el('det-mais-um').addEventListener('click', function () {
     marcarEpisodio(Store.obter(detalheId), el('det-mais-um'));
   });

@@ -79,6 +79,8 @@
     <nav class="navegacao" aria-label="Principal">
       <a href="#/" id="nav-biblioteca">Biblioteca <span class="contador" id="nav-total"></span></a>
       <a href="#/quero-assistir" id="nav-quero">Quero assistir <span class="contador" id="nav-fila"></span></a>
+      <a href="#/diario" id="nav-diario">Diário</a>
+      <a href="#/estatisticas" id="nav-estatisticas">Estatísticas</a>
     </nav>
     <div class="topo-acoes">
       <button type="button" class="botao botao-primario" id="botao-adicionar"><svg aria-hidden="true"><use href="#i-mais"/></svg>Adicionar</button>
@@ -167,7 +169,7 @@
         <span class="metrica-icone"><svg aria-hidden="true"><use href="#i-estrela"/></svg></span>
       </div>
       <div class="metrica">
-        <div><p class="metrica-rotulo">Na sua fila</p><p class="metrica-valor"><span id="metrica-fila"></span> <small id="metrica-fila-detalhe"></small></p></div>
+        <div><p class="metrica-rotulo">Tempo acumulado em sessões</p><p class="metrica-valor"><span id="metrica-tempo"></span> <small>assistidos</small></p></div>
         <span class="metrica-icone"><svg aria-hidden="true"><use href="#i-relogio"/></svg></span>
       </div>
       <div class="metrica">
@@ -277,6 +279,64 @@
         </div>
         <div class="barra" id="det-barra" hidden><span id="det-barra-valor"></span></div>
         <p class="progresso-apoio" id="det-barra-texto" hidden></p>
+
+        <div id="det-episodios" hidden>
+          <div class="episodios-topo">
+            <div class="temporadas" id="det-temporadas" role="group" aria-label="Temporada"></div>
+            <button type="button" class="botao" id="det-marcar-temporada">Marcar temporada inteira</button>
+          </div>
+          <p class="progresso-apoio" id="det-episodios-estado" role="status"></p>
+          <ul class="episodios" id="det-lista-episodios"></ul>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <main class="pagina" id="tela-diario" hidden>
+    <div class="cabecalho">
+      <div>
+        <p class="sobretitulo">Sessões registradas</p>
+        <h1>Diário</h1>
+      </div>
+      <p class="cabecalho-total"><strong id="diario-total"></strong> <span id="diario-total-rotulo"></span></p>
+    </div>
+    <p class="nota-pagina" id="diario-sem-data" hidden></p>
+    <div id="diario-lista"></div>
+    <button type="button" class="botao diario-mais" id="diario-mais" hidden>Carregar mais sessões</button>
+    <div class="vazio" id="diario-vazio" hidden>
+      <p>Seu diário começa quando você registrar um título assistido, com data, ou marcar um episódio.</p>
+      <a class="botao" href="#/">Ir para a biblioteca</a>
+    </div>
+  </main>
+
+  <main class="pagina" id="tela-estatisticas" hidden>
+    <div class="cabecalho">
+      <div>
+        <p class="sobretitulo">Seus números</p>
+        <h1>Estatísticas</h1>
+      </div>
+    </div>
+
+    <dl class="numeros">
+      <div class="metrica"><dt class="metrica-rotulo">Tempo assistido</dt><dd class="metrica-valor metrica-ambar"><span id="est-tempo"></span></dd></div>
+      <div class="metrica"><dt class="metrica-rotulo">Filmes assistidos</dt><dd class="metrica-valor" id="est-filmes"></dd></div>
+      <div class="metrica"><dt class="metrica-rotulo">Episódios vistos</dt><dd class="metrica-valor" id="est-episodios"></dd></div>
+      <div class="metrica"><dt class="metrica-rotulo">Média das avaliações</dt><dd class="metrica-valor" id="est-media"></dd></div>
+    </dl>
+    <p class="nota-pagina" id="est-sem-duracao" hidden></p>
+
+    <div class="graficos">
+      <section class="painel grafico grafico-largo">
+        <h2>Sessões nos últimos 12 meses</h2>
+        <div id="grafico-meses"></div>
+      </section>
+      <section class="painel grafico">
+        <h2>Gêneros mais assistidos</h2>
+        <div id="grafico-generos"></div>
+      </section>
+      <section class="painel grafico">
+        <h2>Distribuição das suas notas</h2>
+        <div id="grafico-notas"></div>
       </section>
     </div>
   </main>

@@ -52,9 +52,23 @@ Títulos antigos ou preenchidos à mão não têm sinopse, direção e elenco. C
 
 ## Acompanhar uma série
 
-Na página da série, preencha **Temporada** e **Último episódio** e salve. Com o título ligado ao TMDB, uma barra mostra o progresso na temporada.
+Na página de uma série ligada ao TMDB, escolha a temporada e marque cada episódio visto. Um episódio marcado recebe a data de hoje, e você pode alterar a data e dar uma nota só para ele. O progresso acompanha o episódio marcado mais adiantado. **Marcar temporada inteira** marca os que faltam, com a data de hoje.
 
-Nas séries com o status **Vendo**, o botão **+1 episódio** avança o número com um clique, tanto no cartaz quanto na página. Para mudar de temporada, ajuste os dois campos.
+Marcar um episódio de uma série em **Quero ver** muda o status para **Vendo**. Marcar todos não muda o status para **Visto** sozinho.
+
+Nas séries com o status **Vendo**, o botão **+1 episódio** marca o próximo, tanto no cartaz quanto na página, e passa para a temporada seguinte quando a atual termina.
+
+Em séries sem ligação com o TMDB, preencha **Temporada** e **Último episódio** e salve. Nelas, o **+1 episódio** apenas avança o número.
+
+## Diário
+
+O **Diário** mostra suas sessões por mês, da mais recente para a mais antiga: cada episódio marcado e cada título com status **Visto** e data. Títulos assistidos sem data não aparecem, e a página avisa quantos são.
+
+## Estatísticas
+
+**Estatísticas** reúne tempo assistido, filmes, episódios, nota média, sessões nos últimos 12 meses, gêneros mais vistos e distribuição das notas.
+
+O tempo soma filmes com status **Visto** e episódios marcados. Sessões sem duração conhecida ficam de fora, e a página avisa quantas são. Em filmes ligados ao TMDB, abrir a página do título já completa a duração.
 
 ## Backup
 
@@ -67,6 +81,7 @@ A lista fica no banco de dados, e o backup é uma cópia extra sob o seu control
 - títulos que ainda não estão na lista são adicionados;
 - se um título existe nos dois, fica a versão editada por último;
 - títulos que existem só na lista atual são mantidos;
+- os episódios marcados seguem as mesmas regras e também fazem parte do backup;
 - registros inválidos no arquivo são ignorados, e o site informa quantos foram.
 
 Por causa dessa junção, **um título excluído volta** se você importar um backup antigo que ainda o contém.

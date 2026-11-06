@@ -106,6 +106,20 @@ async function detalhar(id: number, tipo: string) {
   };
 }
 
+async function detalharTemporada(id: number, numero: number) {
+  const r = await tmdb(`/tv/${id}/season/${numero}`, {});
+  return {
+    number: numero,
+    // deno-lint-ignore no-explicit-any
+    episodes: (r.episodes || []).map((e: any) => ({
+      number: e.episode_number,
+      name: e.name || null,
+      overview: e.overview || null,
+      runtime: e.runtime || null,
+    })),
+  };
+}
+
 Deno.serve(async (requisicao) => {
   const cors = cabecalhosCors(requisicao.headers.get("Origin"));
   const responder = (corpo: unknown, status = 200) =>
@@ -128,11 +142,13 @@ Deno.serve(async (requisicao) => {
   let consulta = "";
   let id: unknown;
   let tipo: unknown;
+  let temporada: unknown;
   try {
     const corpo = await requisicao.json();
     consulta = typeof corpo.q === "string" ? corpo.q.trim().slice(0, MAX_CONSULTA) : "";
     id = corpo.id;
     tipo = corpo.type;
+    temporada = corpo.season;
   } catch {
     return responder({ erro: "Requisição inválida." }, 400);
   }
@@ -141,9 +157,14 @@ Deno.serve(async (requisicao) => {
   if (pedeDetalhes && !(Number.isInteger(id) && (id as number) > 0 && (tipo === "movie" || tipo === "series"))) {
     return responder({ erro: "Requisição inválida." }, 400);
   }
+  const pedeTemporada = temporada !== undefined;
+  if (pedeTemporada && !(pedeDetalhes && tipo === "series" && Number.isInteger(temporada) && (temporada as number) >= 0)) {
+    return responder({ erro: "Requisição inválida." }, 400);
+  }
   if (!pedeDetalhes && consulta.length < 2) return responder({ resultados: [] });
 
   try {
+    if (pedeTemporada) return responder({ temporada: await detalharTemporada(id as number, temporada as number) });
     if (pedeDetalhes) return responder({ detalhes: await detalhar(id as number, tipo as string) });
     return responder({ resultados: await buscar(consulta) });
   } catch (erro) {

@@ -3,9 +3,10 @@
   'use strict';
 
   var TABELA = 'titles';
+  var TABELA_VISTAS = 'episode_views';
   var CHAVE_LOCAL_ANTIGA = 'filmes-e-series:v1';
   var APP = 'filmes-e-series';
-  var VERSAO = 2;
+  var VERSAO = 3;
   var PREFIXO_POSTER = 'https://image.tmdb.org/t/p/';
   var ANO_MINIMO = 1888;
   var TAMANHO_PAGINA = 1000;
@@ -20,6 +21,7 @@
 
   var cliente = null;
   var itens = [];
+  var vistas = [];
 
   function inteiroOuNulo(valor) {
     if (valor === null || valor === undefined || valor === '') return null;
@@ -66,6 +68,9 @@
     var idTmdb = inteiroOuNulo(entrada.tmdbId);
     if (idTmdb !== null && !(idTmdb > 0)) idTmdb = null;
 
+    var duracao = inteiroOuNulo(entrada.runtime);
+    if (duracao !== null && !(duracao > 0)) duracao = null;
+
     var assistido = entrada.status === 'watched';
     var nota = assistido ? inteiroOuNulo(entrada.rating) : null;
     if (nota !== null && !(nota >= 1 && nota <= 10)) return { erro: 'A nota deve ser de 1 a 10.' };
@@ -97,6 +102,7 @@
         posterUrl: poster,
         tmdbId: idTmdb,
         director: String(entrada.director || '').trim() || null,
+        runtime: duracao,
         rating: nota,
         watchedOn: vistoEm,
         genres: generos,
@@ -119,6 +125,7 @@
       poster_url: item.posterUrl,
       tmdb_id: item.tmdbId,
       director: item.director,
+      runtime: item.runtime,
       rating: item.rating,
       watched_on: item.watchedOn,
       genres: item.genres,
@@ -140,12 +147,58 @@
       posterUrl: linha.poster_url,
       tmdbId: linha.tmdb_id,
       director: linha.director,
+      runtime: linha.runtime,
       rating: linha.rating,
       watchedOn: linha.watched_on,
       genres: linha.genres,
       notes: linha.notes,
       createdAt: linha.created_at,
       updatedAt: linha.updated_at
+    };
+  }
+
+  function daLinhaVista(linha) {
+    return {
+      titleId: linha.title_id,
+      season: linha.season,
+      episode: linha.episode,
+      watchedOn: linha.watched_on,
+      rating: linha.rating,
+      runtime: linha.runtime,
+      updatedAt: linha.updated_at
+    };
+  }
+
+  function paraLinhaVista(vista) {
+    return {
+      title_id: vista.titleId,
+      season: vista.season,
+      episode: vista.episode,
+      watched_on: vista.watchedOn,
+      rating: vista.rating,
+      runtime: vista.runtime,
+      updated_at: vista.updatedAt
+    };
+  }
+
+  /* Devolve a vista normalizada, ou null se o registro for inválido. */
+  function normalizarVista(entrada) {
+    if (!entrada || !UUID.test(String(entrada.titleId))) return null;
+    var temporada = inteiroOuNulo(entrada.season);
+    var episodio = inteiroOuNulo(entrada.episode);
+    if (!(temporada >= 0) || temporada === null || !(episodio >= 0) || episodio === null) return null;
+    if (!dataValida(String(entrada.watchedOn))) return null;
+    var nota = inteiroOuNulo(entrada.rating);
+    if (nota !== null && !(nota >= 1 && nota <= 10)) return null;
+    var duracao = inteiroOuNulo(entrada.runtime);
+    return {
+      titleId: entrada.titleId,
+      season: temporada,
+      episode: episodio,
+      watchedOn: entrada.watchedOn,
+      rating: nota,
+      runtime: duracao > 0 ? duracao : null,
+      updatedAt: entrada.updatedAt || new Date().toISOString()
     };
   }
 
@@ -187,22 +240,30 @@
 
   async function sair() {
     itens = [];
+    vistas = [];
     /* Encerra só este aparelho, inclusive se o servidor estiver fora do ar. */
     await cliente.auth.signOut({ scope: 'local' });
   }
 
+  /* Lê a tabela inteira em páginas, porque a API limita cada resposta. Devolve null se falhar. */
+  async function lerTudo(tabela) {
+    var todos = [];
+    for (var inicio = 0; ; inicio += TAMANHO_PAGINA) {
+      var resposta = await cliente.from(tabela).select('*')
+        .order('id')
+        .range(inicio, inicio + TAMANHO_PAGINA - 1);
+      if (resposta.error) return null;
+      todos = todos.concat(resposta.data);
+      if (resposta.data.length < TAMANHO_PAGINA) return todos;
+    }
+  }
+
   async function carregar() {
     try {
-      var todos = [];
-      for (var inicio = 0; ; inicio += TAMANHO_PAGINA) {
-        var resposta = await cliente.from(TABELA).select('*')
-          .order('id')
-          .range(inicio, inicio + TAMANHO_PAGINA - 1);
-        if (resposta.error) return { erro: ERRO_CONEXAO };
-        todos = todos.concat(resposta.data);
-        if (resposta.data.length < TAMANHO_PAGINA) break;
-      }
-      itens = todos.map(daLinha);
+      var linhas = await Promise.all([lerTudo(TABELA), lerTudo(TABELA_VISTAS)]);
+      if (!linhas[0] || !linhas[1]) return { erro: ERRO_CONEXAO };
+      itens = linhas[0].map(daLinha);
+      vistas = linhas[1].map(daLinhaVista);
       return {};
     } catch (e) {
       return { erro: ERRO_CONEXAO };
@@ -234,6 +295,7 @@
       var resposta = await cliente.from(TABELA).delete().eq('id', id);
       if (resposta.error) return { erro: 'Não foi possível excluir. ' + ERRO_CONEXAO };
       itens = itens.filter(function (item) { return item.id !== id; });
+      vistas = vistas.filter(function (vista) { return vista.titleId !== id; });
       return {};
     } catch (e) {
       return { erro: 'Não foi possível excluir. ' + ERRO_CONEXAO };
@@ -250,6 +312,122 @@
       return { resultados: resposta.data.resultados };
     } catch (e) {
       return { erro: 'A busca não está disponível agora. Você pode preencher os campos manualmente.' };
+    }
+  }
+
+  function listarVistas(idTitulo) {
+    return idTitulo
+      ? vistas.filter(function (vista) { return vista.titleId === idTitulo; })
+      : vistas.slice();
+  }
+
+  function mesmaVista(a, b) {
+    return a.titleId === b.titleId && a.season === b.season && a.episode === b.episode;
+  }
+
+  function guardarVistaLocal(vista) {
+    vistas = vistas.filter(function (v) { return !mesmaVista(v, vista); });
+    vistas.push(vista);
+  }
+
+  /* O progresso do título acompanha o episódio visto mais adiantado. */
+  async function sincronizarProgresso(idTitulo) {
+    var item = obter(idTitulo);
+    var ultimo = listarVistas(idTitulo).sort(function (a, b) {
+      return b.season - a.season || b.episode - a.episode;
+    })[0];
+    var mudancas = {
+      season: ultimo ? ultimo.season : null,
+      episode: ultimo ? ultimo.episode : null
+    };
+    if (ultimo && item.status === 'planned') mudancas.status = 'watching';
+    return salvar(Object.assign({}, item, mudancas));
+  }
+
+  /* Grava os episódios um pedido por vez: cliques rápidos não sobrescrevem uns aos outros. */
+  var filaVistas = Promise.resolve();
+
+  function enfileirar(tarefa) {
+    var resultado = filaVistas.then(tarefa);
+    filaVistas = resultado.catch(function () {});
+    return resultado;
+  }
+
+  function marcarEpisodios(idTitulo, entradas) {
+    return enfileirar(function () { return gravarEpisodios(idTitulo, entradas); });
+  }
+
+  function atualizarVista(vista, mudancas) {
+    return enfileirar(function () { return gravarMudancaVista(vista, mudancas); });
+  }
+
+  function desmarcarEpisodio(idTitulo, temporada, episodio) {
+    return enfileirar(function () { return apagarVista(idTitulo, temporada, episodio); });
+  }
+
+  /* Registra episódios de um título e atualiza o progresso. entradas: {season, episode, watchedOn, runtime}. */
+  async function gravarEpisodios(idTitulo, entradas) {
+    var novas = entradas.map(function (entrada) {
+      return normalizarVista(Object.assign({ rating: null }, entrada, { titleId: idTitulo, updatedAt: null }));
+    }).filter(Boolean);
+    if (!novas.length) return { erro: 'Episódio inválido.' };
+    try {
+      for (var i = 0; i < novas.length; i += TAMANHO_LOTE) {
+        var resposta = await cliente.from(TABELA_VISTAS)
+          .upsert(novas.slice(i, i + TAMANHO_LOTE).map(paraLinhaVista), { onConflict: 'title_id,season,episode' });
+        if (resposta.error) return { erro: 'Não foi possível marcar. ' + ERRO_CONEXAO };
+      }
+    } catch (e) {
+      return { erro: 'Não foi possível marcar. ' + ERRO_CONEXAO };
+    }
+    novas.forEach(guardarVistaLocal);
+    return sincronizarProgresso(idTitulo);
+  }
+
+  /* Altera a data ou a nota de um episódio já marcado, sempre a partir da versão mais recente. */
+  async function gravarMudancaVista(vista, mudancas) {
+    var atual = vistas.filter(function (v) { return mesmaVista(v, vista); })[0] || vista;
+    var nova = normalizarVista(Object.assign({}, atual, mudancas, { updatedAt: new Date().toISOString() }));
+    if (!nova) return { erro: 'Data ou nota inválida.' };
+    try {
+      var resposta = await cliente.from(TABELA_VISTAS)
+        .upsert(paraLinhaVista(nova), { onConflict: 'title_id,season,episode' });
+      if (resposta.error) return { erro: 'Não foi possível salvar. ' + ERRO_CONEXAO };
+    } catch (e) {
+      return { erro: 'Não foi possível salvar. ' + ERRO_CONEXAO };
+    }
+    guardarVistaLocal(nova);
+    return { vista: nova };
+  }
+
+  async function apagarVista(idTitulo, temporada, episodio) {
+    try {
+      var resposta = await cliente.from(TABELA_VISTAS).delete()
+        .eq('title_id', idTitulo).eq('season', temporada).eq('episode', episodio);
+      if (resposta.error) return { erro: 'Não foi possível desmarcar. ' + ERRO_CONEXAO };
+    } catch (e) {
+      return { erro: 'Não foi possível desmarcar. ' + ERRO_CONEXAO };
+    }
+    vistas = vistas.filter(function (v) {
+      return !(v.titleId === idTitulo && v.season === temporada && v.episode === episodio);
+    });
+    return sincronizarProgresso(idTitulo);
+  }
+
+  var temporadasEmCache = {};
+
+  async function buscarTemporada(idTmdb, numero) {
+    var chave = idTmdb + ':' + numero;
+    if (temporadasEmCache[chave]) return { temporada: temporadasEmCache[chave] };
+    try {
+      var resposta = await cliente.functions.invoke('swift-handler', { body: { id: idTmdb, type: 'series', season: numero } });
+      if (resposta.error || !resposta.data || !resposta.data.temporada) {
+        return { erro: 'Não foi possível carregar os episódios agora.' };
+      }
+      temporadasEmCache[chave] = resposta.data.temporada;
+      return { temporada: resposta.data.temporada };
+    } catch (e) {
+      return { erro: 'Não foi possível carregar os episódios agora.' };
     }
   }
 
@@ -279,12 +457,33 @@
       app: APP,
       version: VERSAO,
       exportedAt: new Date().toISOString(),
-      items: itens
+      items: itens,
+      episodeViews: vistas
     }, null, 2);
   }
 
   /* Mescla pelo id: registros novos entram e, em conflito, vale o editado por último. */
-  async function mesclar(lista) {
+  async function mesclarVistas(lista) {
+    var linhas = [];
+    var ignoradas = 0;
+    (Array.isArray(lista) ? lista : []).forEach(function (entrada) {
+      var vista = normalizarVista(entrada);
+      if (!vista || !obter(vista.titleId)) {
+        ignoradas++;
+        return;
+      }
+      var atual = vistas.filter(function (v) { return mesmaVista(v, vista); })[0];
+      if (!atual || new Date(vista.updatedAt) > new Date(atual.updatedAt)) linhas.push(paraLinhaVista(vista));
+    });
+    for (var i = 0; i < linhas.length; i += TAMANHO_LOTE) {
+      var resposta = await cliente.from(TABELA_VISTAS)
+        .upsert(linhas.slice(i, i + TAMANHO_LOTE), { onConflict: 'title_id,season,episode' });
+      if (resposta.error) return { erro: 'A importação dos episódios foi interrompida. ' + ERRO_CONEXAO };
+    }
+    return { episodios: linhas.length, ignorados: ignoradas };
+  }
+
+  async function mesclar(lista, listaVistas) {
     var adicionados = 0;
     var atualizados = 0;
     var ignorados = 0;
@@ -322,7 +521,22 @@
 
     var recarga = await carregar();
     if (recarga.erro) return recarga;
-    return { adicionados: adicionados, atualizados: atualizados, ignorados: ignorados };
+
+    var episodios = 0;
+    try {
+      var resultadoVistas = await mesclarVistas(listaVistas);
+      if (resultadoVistas.erro) return resultadoVistas;
+      episodios = resultadoVistas.episodios;
+      ignorados += resultadoVistas.ignorados;
+    } catch (e) {
+      return { erro: 'A importação dos episódios foi interrompida. ' + ERRO_CONEXAO };
+    }
+    if (episodios) {
+      recarga = await carregar();
+      if (recarga.erro) return recarga;
+    }
+
+    return { adicionados: adicionados, atualizados: atualizados, ignorados: ignorados, episodios: episodios };
   }
 
   function importar(texto) {
@@ -338,7 +552,7 @@
     if (dados.version > VERSAO) {
       return Promise.resolve({ erro: 'Este backup foi criado por uma versão mais nova do site.' });
     }
-    return mesclar(dados.items);
+    return mesclar(dados.items, dados.episodeViews);
   }
 
   /* Lista da versão anterior do site, que guardava os títulos no navegador. */
@@ -375,6 +589,11 @@
     remover: remover,
     buscarTitulos: buscarTitulos,
     buscarDetalhes: buscarDetalhes,
+    buscarTemporada: buscarTemporada,
+    listarVistas: listarVistas,
+    marcarEpisodios: marcarEpisodios,
+    atualizarVista: atualizarVista,
+    desmarcarEpisodio: desmarcarEpisodio,
     obter: obter,
     exportar: exportar,
     importar: importar,

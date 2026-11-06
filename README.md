@@ -11,7 +11,8 @@ Catálogo pessoal, com login, para registrar filmes e séries: o que você já a
 - Biblioteca em grade de pôsteres, com filtros, busca, ordenação e métricas
 - Busca de filmes e séries pelo TMDB, com prévia antes de adicionar
 - Página de cada título, com sinopse, direção, elenco, status, nota de até 5 estrelas e anotações
-- Acompanhamento de séries, com botão **+1 episódio** e progresso da temporada
+- Lista de episódios com marcação, data e nota, botão **+1 episódio** e progresso da temporada
+- Diário das sessões e estatísticas do que você assistiu
 - Backup em JSON, para exportar e importar
 - [Identidade visual Cinematic Amber](docs/identidade-visual.md), com layout adaptado ao celular
 
@@ -34,8 +35,8 @@ index.html           Estrutura das telas e ícones
 css/styles.css       Estilos e identidade visual
 js/config.js         Endereço e chave pública do Supabase
 js/store.js          Dados: login, validação, banco, TMDB e backup
-js/app.js            Interface: rotas, biblioteca, detalhes e modal
-supabase/schema.sql  Tabela e regras de acesso
+js/app.js            Interface: rotas, telas e modal
+supabase/schema.sql  Tabelas e regras de acesso
 supabase/migracoes/  Mudanças para bancos já criados
 supabase/functions/  Função que consulta o TMDB
 img/                 Ícone do site e logo do TMDB

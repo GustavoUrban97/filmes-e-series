@@ -5,7 +5,7 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 ```json
 {
   "app": "filmes-e-series",
-  "version": 2,
+  "version": 3,
   "exportedAt": "2026-11-05T18:30:00.000Z",
   "items": [
     {
@@ -25,6 +25,17 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
       "notes": "",
       "createdAt": "2026-10-01T21:00:00.000Z",
       "updatedAt": "2026-10-01T21:00:00.000Z"
+    }
+  ],
+  "episodeViews": [
+    {
+      "titleId": "6f1c2a7e-0b1d-4c55-9a33-2f8e4d1b7c90",
+      "season": 2,
+      "episode": 5,
+      "watchedOn": "2026-10-01",
+      "rating": 8,
+      "runtime": 47,
+      "updatedAt": "2026-10-01T22:00:00.000Z"
     }
   ]
 }
@@ -50,6 +61,21 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 | `notes` | texto | Pode ser vazio |
 | `createdAt` | texto | Data e hora ISO 8601 da criação |
 | `updatedAt` | texto | Data e hora ISO 8601 da última edição; decide conflitos na importação |
+
+O título também aceita `runtime`, a duração do filme em minutos, ou `null`.
+
+## Episódios vistos
+
+Ficam na tabela `episode_views` e em `episodeViews` no backup, que é opcional em backups antigos. Cada combinação de título, temporada e episódio aparece uma vez.
+
+| Campo | Tipo | Regras |
+| --- | --- | --- |
+| `titleId` | UUID | Título da biblioteca; se ele não existir, o registro é ignorado |
+| `season` e `episode` | inteiro | Maiores ou iguais a 0 |
+| `watchedOn` | texto | Data `AAAA-MM-DD` |
+| `rating` | inteiro ou `null` | De 1 a 10, em que cada ponto vale meia estrela |
+| `runtime` | inteiro ou `null` | Duração em minutos |
+| `updatedAt` | texto | Decide conflitos na importação |
 
 ## Regras de importação
 

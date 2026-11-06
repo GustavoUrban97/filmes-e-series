@@ -1,5 +1,15 @@
 # Histórico de mudanças
 
+## 5.0.0 - 2026-11-06
+
+- Lista de episódios por temporada, com marcação, data e nota individuais
+- **+1 episódio** registra o episódio e passa para a temporada seguinte
+- Diário com as sessões por mês
+- Estatísticas com tempo assistido, sessões por mês, gêneros e notas
+- Tempo acumulado de volta à biblioteca
+- Episódios incluídos no backup, agora na versão 3 do formato
+- Exige executar `supabase/migracoes/004-episodios.sql` e atualizar a função de busca em projetos existentes
+
 ## 4.0.0 - 2026-11-06
 
 - O site passa a se chamar Claquete, com a identidade Cinematic Amber
