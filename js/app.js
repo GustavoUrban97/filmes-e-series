@@ -1936,6 +1936,7 @@
   }
 
   async function iniciar() {
+    el('faixa-testes').hidden = window.APP_CONFIG.ambiente !== 'testes';
     definirVista(lerPreferencia(CHAVE_VISTA) === 'lista' ? 'lista' : 'grade');
     if (!Store.iniciar()) {
       mostrarTela('nenhuma');

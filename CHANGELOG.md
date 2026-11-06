@@ -1,5 +1,11 @@
 # Histórico de mudanças
 
+## 7.2.0 - 2026-11-06
+
+- Ambiente de testes separado: fora do endereço publicado, o site nunca usa o banco real
+- Servidor local e teste de isolamento entre contas no repositório
+- Documentação reorganizada, com arquitetura e registros de decisão (ADRs)
+
 ## 7.1.1 - 2026-11-06
 
 - O Diário volta ao mesmo ponto, mantendo as sessões já carregadas

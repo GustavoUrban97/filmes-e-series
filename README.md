@@ -16,7 +16,7 @@ Catálogo pessoal, com login, para registrar filmes e séries: o que você já a
 - Recomendações de filmes e séries a partir do seu gosto
 - Diário das sessões e estatísticas do que você assistiu
 - Backup em JSON, para exportar e importar
-- [Identidade visual Cinematic Amber](docs/identidade-visual.md), com layout adaptado ao celular
+- [Identidade visual Cinematic Amber](docs/referencia/identidade-visual.md), com layout adaptado ao celular
 
 ## Onde ficam os dados
 
@@ -26,22 +26,27 @@ O navegador guarda apenas a sessão de login e a preferência de exibição.
 
 ## Rodar localmente
 
-O projeto não tem dependências nem etapa de build, mas precisa ser servido por um servidor local (`http://localhost`), e não aberto direto do disco.
+O projeto não tem dependências nem etapa de build, mas precisa ser servido por um servidor local, e não aberto direto do disco:
 
-Antes de usar, siga a [configuração do Supabase](docs/configuracao-supabase.md).
+```powershell
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts/servidor-local.ps1
+```
+
+Em `localhost`, o site usa o projeto de testes, nunca o banco real. Veja o [ambiente de testes](docs/operacao/ambiente-de-testes.md). Para criar um projeto do zero, siga a [configuração do Supabase](docs/operacao/configuracao-supabase.md).
 
 ## Estrutura
 
 ```text
 index.html           Estrutura das telas e ícones
 css/styles.css       Estilos e identidade visual
-js/config.js         Endereço e chave pública do Supabase
+js/config.js         Endereço e chave pública de cada ambiente
 js/store.js          Dados: login, validação, banco, TMDB e backup
 js/recomendacoes.js  Gosto e pontuação das recomendações
 js/app.js            Interface: rotas, telas e modal
 supabase/schema.sql  Tabelas e regras de acesso
 supabase/migracoes/  Mudanças para bancos já criados
 supabase/functions/  Função que consulta o TMDB
+scripts/             Servidor local e teste de isolamento
 img/                 Ícone do site e logo do TMDB
 fonts/               Fonte do site e sua licença
 docs/                Documentação
@@ -49,11 +54,16 @@ docs/                Documentação
 
 ## Documentação
 
-- [Configuração do Supabase](docs/configuracao-supabase.md)
-- [Guia de uso](docs/guia-de-uso.md)
-- [Identidade visual](docs/identidade-visual.md)
-- [Formato dos dados](docs/formato-dos-dados.md)
-- [Publicação](docs/publicacao.md)
+O [índice da documentação](docs/README.md) indica onde encontrar cada assunto:
+
+- [Guia de uso](docs/guias/guia-de-uso.md)
+- [Arquitetura](docs/arquitetura.md)
+- [Decisões de arquitetura (ADRs)](docs/adr/README.md)
+- [Configuração do Supabase](docs/operacao/configuracao-supabase.md)
+- [Ambiente de testes](docs/operacao/ambiente-de-testes.md)
+- [Publicação](docs/operacao/publicacao.md)
+- [Formato dos dados](docs/referencia/formato-dos-dados.md)
+- [Identidade visual](docs/referencia/identidade-visual.md)
 - [Histórico de mudanças](CHANGELOG.md)
 
 ## Créditos
