@@ -20,7 +20,7 @@ Se ele não aparecer na lista, clique em **Não achou? Preencher manualmente**. 
 ## Encontrar um título
 
 - **Biblioteca** mostra tudo, e **Quero assistir** mostra só a sua fila.
-- As abas separam filmes e séries.
+- As abas separam filmes, séries e animes. Um filme de anime aparece em **Filmes** e em **Animes**, e uma série de anime aparece só em **Animes**.
 - O filtro procura no título, na direção, nos gêneros e nas anotações, e `Ctrl+K` leva até ele. Acentos não fazem diferença.
 - Também é possível filtrar por gênero, ano, nota e situação, ordenar e alternar entre grade e lista.
 
@@ -49,6 +49,10 @@ Títulos antigos ou preenchidos à mão não têm sinopse, direção e elenco. C
 
 - **Editar dados do título** troca o título no TMDB ou corrige os dados manualmente. No preenchimento manual, também é possível remover a imagem.
 - **Remover da biblioteca** pede confirmação e não pode ser desfeito.
+
+### Marcar como anime
+
+O site identifica anime pelos dados do TMDB: gênero Animação e idioma original japonês. Se a identificação errar, ou se o título não estiver ligado ao TMDB, use **É anime** na página do título e clique em **Salvar avaliação**. Sua escolha não é substituída depois, a menos que você troque o título no TMDB.
 
 ## Acompanhar uma série
 

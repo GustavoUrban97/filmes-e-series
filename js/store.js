@@ -106,6 +106,7 @@
         tmdbId: idTmdb,
         director: String(entrada.director || '').trim() || null,
         runtime: duracao,
+        anime: typeof entrada.anime === 'boolean' ? entrada.anime : null,
         rating: nota,
         watchedOn: vistoEm,
         genres: generos,
@@ -129,6 +130,7 @@
       tmdb_id: item.tmdbId,
       director: item.director,
       runtime: item.runtime,
+      anime: item.anime,
       rating: item.rating,
       watched_on: item.watchedOn,
       genres: item.genres,
@@ -151,6 +153,7 @@
       tmdbId: linha.tmdb_id,
       director: linha.director,
       runtime: linha.runtime,
+      anime: linha.anime,
       rating: linha.rating,
       watchedOn: linha.watched_on,
       genres: linha.genres,
@@ -455,7 +458,33 @@
     }
   }
 
-  var ERRO_RECOMENDACOES = 'Não foi possível buscar recomendações agora.';
+  /* Classifica uma vez os títulos ligados ao TMDB. Não conta como edição: updated_at não muda. */
+  async function classificarAnimes() {
+    var alterados = [];
+    var pendentes = itens.filter(function (i) { return i.anime === null && i.tmdbId; }).map(function (i) { return i.id; });
+    for (var n = 0; n < pendentes.length; n++) {
+      var id = pendentes[n];
+      var item = obter(id);
+      if (!item || item.anime !== null) continue;
+      var resposta = await buscarDetalhes(item.tmdbId, item.type);
+      if (!resposta.detalhes || typeof resposta.detalhes.anime !== 'boolean') continue;
+      try {
+        var gravacao = await cliente.from(TABELA).update({ anime: resposta.detalhes.anime }).eq('id', id);
+        if (gravacao.error) continue;
+      } catch (e) {
+        continue;
+      }
+      /* A pessoa pode ter salvo o título enquanto a consulta acontecia. */
+      var atual = obter(id);
+      if (atual && atual.anime === null) {
+        atual.anime = resposta.detalhes.anime;
+        alterados.push(id);
+      }
+    }
+    return alterados;
+  }
+
+  var ERRO_RECOMENDACOES ='Não foi possível buscar recomendações agora.';
   var recomendacoesEmCache = {};
 
   async function buscarRecomendacoes(pedido) {
@@ -662,6 +691,7 @@
     buscarTitulos: buscarTitulos,
     buscarDetalhes: buscarDetalhes,
     buscarTemporada: buscarTemporada,
+    classificarAnimes: classificarAnimes,
     buscarRecomendacoes: buscarRecomendacoes,
     dispensar: dispensar,
     restaurarDispensados: restaurarDispensados,

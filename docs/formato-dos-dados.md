@@ -71,6 +71,8 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 
 O título também aceita `runtime`, a duração do filme em minutos, ou `null`.
 
+Também aceita `anime`: `true`, `false` ou `null`, quando ainda não foi classificado. O campo é opcional em backups antigos.
+
 ## Episódios vistos
 
 Ficam na tabela `episode_views` e em `episodeViews` no backup, que é opcional em backups antigos. Cada combinação de título, temporada e episódio aparece uma vez.

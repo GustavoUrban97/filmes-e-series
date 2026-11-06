@@ -1518,3 +1518,22 @@ kbd {
   .navegacao a { flex: none; white-space: nowrap; }
   .rec-acoes .botao { padding: 4px; font-size: 12px; white-space: nowrap; }
 }
+
+.marcar-anime {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 12px;
+  color: var(--texto-suave);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.marcar-anime input { width: 16px; height: 16px; margin: 0; accent-color: var(--ambar); }
+
+@media (max-width: 860px) {
+  /* As abas ficam em uma linha, e a nota desce para não encostar no selo "Filme de anime". */
+  .abas { flex-wrap: nowrap; max-width: 100%; overflow-x: auto; scrollbar-width: none; }
+  .aba { flex: none; padding-right: 12px; padding-left: 12px; white-space: nowrap; }
+  .selo-nota { top: 36px; }
+}

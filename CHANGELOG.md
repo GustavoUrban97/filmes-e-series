@@ -1,5 +1,12 @@
 # Histórico de mudanças
 
+## 7.0.0 - 2026-11-06
+
+- Animes separados das séries, com a aba **Animes** na biblioteca e em **Para você**
+- Detecção automática pelo TMDB e opção manual na página do título
+- Filmes de anime aparecem nas abas **Filmes** e **Animes**
+- Exige executar `supabase/migracoes/006-animes.sql` e atualizar a função de busca em projetos existentes
+
 ## 6.0.0 - 2026-11-06
 
 - Nova tela **Para você**, com filmes e séries recomendados a partir das suas notas e dos seus gêneros

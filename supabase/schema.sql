@@ -14,6 +14,7 @@ create table if not exists public.titles (
   tmdb_id integer check (tmdb_id > 0),
   director text,
   runtime integer check (runtime > 0),
+  anime boolean,
   rating integer check (rating between 1 and 10),
   watched_on date,
   genres text[] not null default '{}',

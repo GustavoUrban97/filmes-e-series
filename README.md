@@ -10,6 +10,7 @@ Catálogo pessoal, com login, para registrar filmes e séries: o que você já a
 - Lista salva em banco de dados, disponível em qualquer aparelho
 - Biblioteca em grade de pôsteres, com filtros, busca, ordenação e métricas
 - Busca de filmes e séries pelo TMDB, com prévia antes de adicionar
+- Animes separados das séries, com detecção automática e opção manual
 - Página de cada título, com sinopse, direção, elenco, status, nota de até 5 estrelas e anotações
 - Lista de episódios com marcação, data e nota, botão **+1 episódio** e progresso da temporada
 - Recomendações de filmes e séries a partir do seu gosto

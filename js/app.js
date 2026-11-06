@@ -11,6 +11,19 @@
 
   function el(id) { return document.getElementById(id); }
 
+  /* Vale para títulos da biblioteca e para resultados do TMDB. */
+  function rotuloTipo(titulo) {
+    if (!titulo.anime) return ROTULO_TIPO[titulo.type];
+    return titulo.type === 'movie' ? 'Filme de anime' : 'Anime';
+  }
+
+  /* Filme de anime fica em Filmes e em Animes; série de anime, só em Animes. */
+  function pertenceAba(titulo, aba) {
+    if (aba === 'anime') return Boolean(titulo.anime);
+    if (aba === 'series') return titulo.type === 'series' && !titulo.anime;
+    return !aba || titulo.type === aba;
+  }
+
   var lista = el('lista');
   var dialogo = el('dialogo');
   var busca = el('filtro-busca');
@@ -287,7 +300,7 @@
     var termo = semAcento(busca.value.trim());
     var situacao = rota.nome === 'quero' ? 'planned' : filtroSituacao.value;
     return itens.filter(function (i) {
-      if (tipoAtivo && i.type !== tipoAtivo) return false;
+      if (!pertenceAba(i, tipoAtivo)) return false;
       if (situacao && i.status !== situacao) return false;
       if (filtroGenero.value && i.genres.indexOf(filtroGenero.value) < 0) return false;
       if (filtroAno.value && String(i.year) !== filtroAno.value) return false;
@@ -328,7 +341,7 @@
 
     var imagem = criar('div', 'cartaz-imagem');
     preencherPoster(imagem, item.posterUrl, item.title, 'w342');
-    imagem.appendChild(criar('span', 'selo-tipo', ROTULO_TIPO[item.type]));
+    imagem.appendChild(criar('span', 'selo-tipo', rotuloTipo(item)));
     if (item.rating !== null) {
       var nota = criar('span', 'selo-nota');
       nota.appendChild(icone('estrela'));
@@ -355,7 +368,7 @@
     if (item.year !== null) meta.push(item.year);
     if (item.director) meta.push(item.director);
     else if (item.genres.length) meta.push(item.genres[0]);
-    texto.appendChild(criar('p', 'cartaz-meta', meta.join(' • ') || ROTULO_TIPO[item.type]));
+    texto.appendChild(criar('p', 'cartaz-meta', meta.join(' • ') || rotuloTipo(item)));
 
     if (item.notes) {
       texto.appendChild(criar('p', 'cartaz-citacao', '“' + item.notes.split('\n')[0] + '”'));
@@ -388,10 +401,11 @@
   }
 
   function renderizarAbas(base) {
-    function conta(tipo) { return base.filter(function (i) { return i.type === tipo; }).length; }
+    function conta(aba) { return base.filter(function (i) { return pertenceAba(i, aba); }).length; }
     el('aba-todos').textContent = 'Todos (' + base.length + ')';
     el('aba-filmes').textContent = 'Filmes (' + conta('movie') + ')';
     el('aba-series').textContent = 'Séries (' + conta('series') + ')';
+    el('aba-animes').textContent = 'Animes (' + conta('anime') + ')';
     document.querySelectorAll('#tela-biblioteca .aba').forEach(function (aba) {
       aba.setAttribute('aria-pressed', String(aba.dataset.tipo === tipoAtivo));
     });
@@ -861,6 +875,11 @@
     preencherTmdb(item, resultado.detalhes);
   }
 
+  function mostrarAnimeDetalhe(item) {
+    el('det-tipo').textContent = rotuloTipo(item);
+    el('det-anime').checked = Boolean(item.anime);
+  }
+
   function renderizarDetalhe(item) {
     detalheId = item.id;
     detalheTemporadas = [];
@@ -874,7 +893,7 @@
     el('det-fundo').hidden = true;
     el('det-fundo').removeAttribute('src');
     preencherPoster(el('det-poster'), item.posterUrl, item.title, 'w500');
-    el('det-tipo').textContent = ROTULO_TIPO[item.type];
+    mostrarAnimeDetalhe(item);
     el('det-ano').textContent = item.year === null ? '' : String(item.year);
     el('det-ano').hidden = item.year === null;
     el('det-duracao').hidden = true;
@@ -907,7 +926,10 @@
     if (!item) return;
     var botao = el('det-salvar');
     botao.disabled = true;
+    var marcado = el('det-anime').checked;
     var resultado = await Store.salvar(Object.assign({}, item, {
+      /* Sem mudança na caixa, um título ainda não classificado continua assim. */
+      anime: marcado === Boolean(item.anime) ? item.anime : marcado,
       status: detalheStatus,
       rating: notaAtual() || null,
       watchedOn: el('det-data').value,
@@ -1015,7 +1037,7 @@
     textos.appendChild(criar('span', 'sugestao-titulo', resultado.title));
     var meta = [];
     if (resultado.year) meta.push(resultado.year);
-    meta.push(ROTULO_TIPO[resultado.type]);
+    meta.push(rotuloTipo(resultado));
     if (resultado.genres.length) meta.push(resultado.genres.slice(0, 2).join(' / '));
     textos.appendChild(criar('span', 'sugestao-meta', meta.join(' • ')));
     opcao.appendChild(textos);
@@ -1037,7 +1059,7 @@
   function preencherEtiquetasPrevia(resultado, detalhes) {
     var etiquetas = el('previa-etiquetas');
     etiquetas.textContent = '';
-    etiquetas.appendChild(criar('span', 'etiqueta etiqueta-ambar', ROTULO_TIPO[resultado.type]));
+    etiquetas.appendChild(criar('span', 'etiqueta etiqueta-ambar', rotuloTipo(resultado)));
     if (resultado.year) etiquetas.appendChild(criar('span', 'etiqueta', String(resultado.year)));
     if (detalhes && detalhes.runtime) {
       etiquetas.appendChild(criar('span', 'etiqueta', detalhes.runtime + ' min' + (resultado.type === 'series' ? ' / ep' : '')));
@@ -1213,6 +1235,7 @@
       genres: escolhido.genres,
       posterUrl: escolhido.poster,
       tmdbId: escolhido.id,
+      anime: escolhido.anime,
       director: detalhesEscolhido ? detalhesEscolhido.directors.join(', ') : null,
       runtime: detalhesEscolhido && escolhido.type === 'movie' ? detalhesEscolhido.runtime : null
     };
@@ -1328,7 +1351,7 @@
     renderizarRestaurar();
 
     var sugestoes = Recomendador.ordenar(recResposta, recGosto, Store.listar(), Store.listarDispensados())
-      .filter(function (s) { return !recTipo || s.resultado.type === recTipo; })
+      .filter(function (s) { return pertenceAba(s.resultado, recTipo); })
       .slice(0, REC_POR_TELA);
     var destino = el('rec-lista');
     destino.textContent = '';
@@ -1357,6 +1380,7 @@
       genres: resultado.genres,
       posterUrl: resultado.poster,
       tmdbId: resultado.id,
+      anime: resultado.anime,
       director: detalhes ? detalhes.directors.join(', ') : null,
       runtime: detalhes && resultado.type === 'movie' ? detalhes.runtime : null
     });
@@ -1400,7 +1424,7 @@
 
     var imagem = criar('div', 'cartaz-imagem');
     preencherPoster(imagem, r.poster, r.title, 'w342');
-    imagem.appendChild(criar('span', 'selo-tipo', ROTULO_TIPO[r.type]));
+    imagem.appendChild(criar('span', 'selo-tipo', rotuloTipo(r)));
     var voto = criar('span', 'selo-nota');
     voto.appendChild(icone('estrela'));
     voto.appendChild(document.createTextNode(r.vote.toLocaleString('pt-BR')));
@@ -1417,7 +1441,7 @@
     var meta = [];
     if (r.year) meta.push(r.year);
     if (r.genres.length) meta.push(r.genres[0]);
-    texto.appendChild(criar('p', 'cartaz-meta', meta.join(' • ') || ROTULO_TIPO[r.type]));
+    texto.appendChild(criar('p', 'cartaz-meta', meta.join(' • ') || rotuloTipo(r)));
     texto.appendChild(criar('p', 'rec-motivo', sugestao.motivo));
 
     var acoes = criar('div', 'rec-acoes');
@@ -1793,6 +1817,16 @@
     el('botao-adicionar').hidden = false;
     mostrarAvisoListaAntiga();
     aplicarRota();
+    atualizarClassificacaoAnimes();
+  }
+
+  /* Roda depois de abrir a tela e não redesenha a página do título, para não perder o que está sendo digitado. */
+  async function atualizarClassificacaoAnimes() {
+    var alterados = await Store.classificarAnimes();
+    if (!alterados.length || !idUsuarioAtual) return;
+    var rota = rotaAtual().nome;
+    if (rota === 'biblioteca' || rota === 'quero') renderizarBiblioteca();
+    if (rota === 'titulo' && alterados.indexOf(detalheId) >= 0) mostrarAnimeDetalhe(Store.obter(detalheId));
   }
 
   /* O Supabase repete o aviso de sessão ao voltar para a aba; só recarrega se a conta mudou. */

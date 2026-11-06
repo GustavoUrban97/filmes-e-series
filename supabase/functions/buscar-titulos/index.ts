@@ -13,6 +13,7 @@ const MAX_ELENCO = 4;
 const IDIOMA = "pt-BR";
 const MAX_RESULTADOS = 8;
 const MAX_CONSULTA = 100;
+const GENERO_ANIMACAO = 16;
 const MAX_REFERENCIAS = 8;
 const MAX_GENEROS_PEDIDOS = 3;
 const MAX_NOME_GENERO = 40;
@@ -63,6 +64,11 @@ async function carregarGeneros() {
   return generos;
 }
 
+// O TMDB não tem categoria de anime: a regra é gênero Animação e idioma original japonês.
+function ehAnime(generos: number[], idioma: unknown) {
+  return generos.includes(GENERO_ANIMACAO) && idioma === "ja";
+}
+
 // deno-lint-ignore no-explicit-any
 function paraResultado(r: any, midia: "movie" | "tv", mapas: Record<string, Record<number, string>>) {
   const data = r.release_date || r.first_air_date || "";
@@ -74,6 +80,7 @@ function paraResultado(r: any, midia: "movie" | "tv", mapas: Record<string, Reco
     genres: (r.genre_ids || []).map((id: number) => mapas[midia][id]).filter(Boolean),
     poster: r.poster_path ? POSTER + r.poster_path : null,
     vote: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
+    anime: ehAnime(r.genre_ids || [], r.original_language),
   };
 }
 
@@ -180,6 +187,8 @@ async function detalhar(id: number, tipo: string) {
     runtime: filme ? r.runtime || null : (r.episode_run_time || [])[0] || null,
     vote: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
     backdrop: r.backdrop_path ? FUNDO + r.backdrop_path : null,
+    // deno-lint-ignore no-explicit-any
+    anime: ehAnime((r.genres || []).map((g: any) => g.id), r.original_language),
     // deno-lint-ignore no-explicit-any
     directors: filme ? nomes(creditos.crew.filter((p: any) => p.job === "Director")) : nomes(r.created_by || []),
     cast: nomes(creditos.cast).slice(0, MAX_ELENCO),
