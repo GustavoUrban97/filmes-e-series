@@ -17,6 +17,7 @@ Os ADRs 0001 a 0009 foram escritos em 2026-11-06, depois das decisões, a partir
 | [0009](0009-anime-como-marcacao.md) | Anime como marcação, não como tipo | Aceita |
 | [0010](0010-ambiente-de-testes-por-endereco.md) | Ambiente de testes escolhido pelo endereço | Aceita |
 | [0011](0011-pull-requests-e-revisor.md) | Pull requests com agente revisor somente leitura | Aceita |
+| [0012](0012-testes-automaticos.md) | Testes automáticos, sem publicação automática | Aceita |
 
 ## Como escrever
 

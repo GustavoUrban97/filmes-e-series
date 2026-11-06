@@ -27,6 +27,7 @@ flowchart LR
 | Interface | `js/app.js` | Rotas, telas e modal. Texto externo entra por `textContent` |
 | Função | `supabase/functions/buscar-titulos/index.ts` | Busca, detalhes, temporadas e recomendações no TMDB |
 | Banco | `supabase/schema.sql` e `supabase/migracoes/` | Tabelas e regras de acesso |
+| Testes | `testes/interface/`, `scripts/testar-isolamento.ps1` e `.github/workflows/testes.yml` | Interface e isolamento em cada pull request, só no projeto de testes |
 
 Os scripts são carregados sem build, nesta ordem: Supabase (jsDelivr, com versão fixa e SRI), `config.js`, `store.js`, `recomendacoes.js` e `app.js`.
 
@@ -133,8 +134,8 @@ Veja [Ambiente de testes](operacao/ambiente-de-testes.md) e [Publicação](opera
 
 ## Limitações conhecidas
 
-- **Publicação manual no Supabase:** SQL e função são aplicados à mão, então nada garante que o projeto esteja igual ao repositório.
-- **Testes parciais:** o script confere o isolamento, mas a interface ainda é testada à mão.
+- **Publicação manual no Supabase:** SQL e função são aplicados à mão, por decisão ([ADR 0012](adr/0012-testes-automaticos.md)), então nada garante que o projeto esteja igual ao repositório.
+- **Testes dependem de terceiros:** usam o TMDB e o projeto de testes reais, e podem falhar se eles estiverem fora do ar.
 - **Sem limite de uso na função:** uma sessão roubada poderia consumir a cota do TMDB.
 - **Sessão no navegador:** o login fica no armazenamento local, como é padrão no Supabase.
 - **CSP por meta tag:** o GitHub Pages não permite cabeçalhos próprios, então não há `frame-ancestors`.
