@@ -4,9 +4,9 @@ O site é publicado pelo GitHub Pages diretamente da raiz da branch `main`. Não
 
 ## Publicar uma alteração
 
-1. Trabalhe em uma branch e teste no [ambiente de testes](ambiente-de-testes.md).
-2. Se houver migração ou mudança na função, aplique primeiro no projeto de testes e rode `scripts/testar-isolamento.ps1`.
-3. Abra um pull request e passe o agente `revisor`.
+1. Trabalhe em uma branch. Se houver migração ou mudança na função, aplique primeiro no projeto de testes.
+2. Abra um pull request. Os [testes automáticos](ambiente-de-testes.md#testes-automáticos) rodam sozinhos.
+3. Passe o agente `revisor` e confira o resultado dos testes.
 4. Aplique a migração e a função em produção, se houver.
 5. Mescle na `main`, o que publica o site.
 

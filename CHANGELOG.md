@@ -1,5 +1,9 @@
 # Histórico de mudanças
 
+## 7.3.0 - 2026-11-06
+
+- Testes de interface com Playwright e teste de isolamento em cada pull request, pelo GitHub Actions
+
 ## 7.2.0 - 2026-11-06
 
 - Ambiente de testes separado: fora do endereço publicado, o site nunca usa o banco real

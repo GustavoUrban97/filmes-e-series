@@ -47,6 +47,8 @@ supabase/schema.sql  Tabelas e regras de acesso
 supabase/migracoes/  Mudanças para bancos já criados
 supabase/functions/  Função que consulta o TMDB
 scripts/             Servidor local e teste de isolamento
+testes/interface/    Testes de interface com Playwright
+.github/workflows/   Testes automáticos em cada pull request
 img/                 Ícone do site e logo do TMDB
 fonts/               Fonte do site e sua licença
 docs/                Documentação

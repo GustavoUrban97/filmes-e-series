@@ -1,0 +1,11 @@
+{
+  "name": "claquete-testes",
+  "private": true,
+  "description": "Testes do Claquete. O site em si não tem dependências nem build.",
+  "scripts": {
+    "test": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "1.64.1"
+  }
+}

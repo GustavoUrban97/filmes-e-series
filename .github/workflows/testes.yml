@@ -1,0 +1,57 @@
+# Roda em cada pull request, sempre no projeto de testes do Supabase.
+# Só usa as contas de teste: não tem acesso ao banco nem ao projeto de produção.
+name: Testes
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+# O projeto de testes é um só: duas execuções ao mesmo tempo interfeririam uma na outra.
+concurrency:
+  group: ambiente-de-testes
+  cancel-in-progress: false
+
+jobs:
+  testes:
+    name: Isolamento e interface
+    runs-on: windows-latest
+    env:
+      TESTE_A_EMAIL: ${{ secrets.TESTE_A_EMAIL }}
+      TESTE_A_SENHA: ${{ secrets.TESTE_A_SENHA }}
+      TESTE_B_EMAIL: ${{ secrets.TESTE_B_EMAIL }}
+      TESTE_B_SENHA: ${{ secrets.TESTE_B_SENHA }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+      - name: Criar as credenciais de teste
+        shell: powershell
+        run: |
+          @(
+            'SUPABASE_URL=https://xjcfkdbrmxsnyhrtshva.supabase.co'
+            'SUPABASE_PUBLISHABLE_KEY=sb_publishable_6imWE9mz_VsTvJzhojzC6g_Qxd4GE8L'
+            "TESTE_A_EMAIL=$env:TESTE_A_EMAIL"
+            "TESTE_A_SENHA=$env:TESTE_A_SENHA"
+            "TESTE_B_EMAIL=$env:TESTE_B_EMAIL"
+            "TESTE_B_SENHA=$env:TESTE_B_SENHA"
+          ) | Out-File .env.teste -Encoding utf8
+      - name: Isolamento entre contas
+        shell: powershell
+        run: scripts/testar-isolamento.ps1
+      - name: Instalar o Playwright
+        run: |
+          npm install --no-audit --no-fund
+          npx playwright install chromium
+      - name: Testes de interface
+        run: npx playwright test
+      - name: Guardar os resultados
+        if: failure()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: resultados-dos-testes
+          path: test-results/
+          retention-days: 7
