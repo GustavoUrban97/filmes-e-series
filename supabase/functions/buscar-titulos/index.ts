@@ -1,5 +1,6 @@
 // Busca filmes e séries no TMDB sem expor o token no site.
-// Mantenha "Verify JWT" ativo: só contas conectadas podem chamar esta função.
+// Só atende contas conectadas: a verificação da plataforma também aceita a chave
+// pública, que está no código do site, então a função confere o login por conta própria.
 
 const ORIGENS_PERMITIDAS = [
   "https://gustavourban97.github.io",
@@ -23,6 +24,16 @@ function cabecalhosCors(origem: string | null): Record<string, string> {
     cabecalhos["Access-Control-Allow-Origin"] = origem;
   }
   return cabecalhos;
+}
+
+async function usuarioConectado(requisicao: Request): Promise<boolean> {
+  const autorizacao = requisicao.headers.get("Authorization");
+  const chave = requisicao.headers.get("apikey");
+  if (!autorizacao || !chave) return false;
+  const resposta = await fetch(`${Deno.env.get("SUPABASE_URL")}/auth/v1/user`, {
+    headers: { Authorization: autorizacao, apikey: chave },
+  });
+  return resposta.ok;
 }
 
 async function tmdb(caminho: string, parametros: Record<string, string>) {
@@ -79,6 +90,13 @@ Deno.serve(async (requisicao) => {
   if (requisicao.method === "OPTIONS") return new Response(null, { status: 204, headers: cors });
   if (requisicao.method !== "POST") return responder({ erro: "Método não permitido." }, 405);
   if (!token) return responder({ erro: "TMDB_TOKEN não configurado." }, 500);
+
+  try {
+    if (!(await usuarioConectado(requisicao))) return responder({ erro: "Login necessário." }, 401);
+  } catch (erro) {
+    console.error(String(erro));
+    return responder({ erro: "Não foi possível verificar o login." }, 502);
+  }
 
   let consulta = "";
   try {

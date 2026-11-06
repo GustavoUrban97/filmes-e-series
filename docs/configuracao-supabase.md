@@ -27,12 +27,12 @@ O site guarda os dados e faz o login pelo [Supabase](https://supabase.com). Este
 
 ## 5. Ativar a busca de títulos
 
-A busca usa o [TMDB](https://www.themoviedb.org). O token dele fica guardado no Supabase, fora do site, e só contas conectadas podem usar a busca.
+A busca usa o [TMDB](https://www.themoviedb.org). O token dele fica guardado no Supabase, fora do site, e a própria função confere o login, então só contas conectadas podem usar a busca.
 
 1. Crie uma conta no TMDB e, em **Settings > API**, solicite uma chave para uso pessoal e não comercial.
 2. Copie o **API Read Access Token**. Esse é o token longo, não a API Key curta.
 3. No Supabase, abra **Edge Functions > Secrets** e crie o segredo `TMDB_TOKEN` com esse valor.
-4. Em **Edge Functions**, crie uma função pelo editor com o nome `buscar-titulos`, cole o conteúdo de [`supabase/functions/buscar-titulos/index.ts`](../supabase/functions/buscar-titulos/index.ts) e publique. Mantenha **Verify JWT** ativo.
+4. Em **Edge Functions**, crie uma função pelo editor, cole o conteúdo de [`supabase/functions/buscar-titulos/index.ts`](../supabase/functions/buscar-titulos/index.ts) e publique. Mantenha **Verify JWT** ativo. O site chama a função pelo nome `swift-handler`: se ela tiver outro nome, atualize a chamada em `buscarTitulos`, no arquivo `js/store.js`.
 
 Sem esses passos, o site continua funcionando, mas os campos precisam ser preenchidos manualmente.
 

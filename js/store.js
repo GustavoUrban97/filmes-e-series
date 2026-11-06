@@ -217,7 +217,7 @@
   /* A busca passa por uma função no Supabase, que guarda o token do TMDB fora do site. */
   async function buscarTitulos(consulta) {
     try {
-      var resposta = await cliente.functions.invoke('buscar-titulos', { body: { q: consulta } });
+      var resposta = await cliente.functions.invoke('swift-handler', { body: { q: consulta } });
       if (resposta.error || !resposta.data || !Array.isArray(resposta.data.resultados)) {
         return { erro: 'A busca não está disponível agora. Você pode preencher os campos manualmente.' };
       }
