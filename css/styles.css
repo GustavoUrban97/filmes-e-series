@@ -1466,3 +1466,55 @@ kbd {
   .previa-topo { grid-template-columns: 90px minmax(0, 1fr); }
   .sugestoes { max-height: 240px; }
 }
+
+/* Para você */
+
+.rec-estado { padding: 48px 16px; color: var(--texto-suave); text-align: center; }
+
+.rec-estado .botao { margin-top: 16px; }
+
+.rec-titulo {
+  width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.rec-motivo {
+  display: -webkit-box;
+  overflow: hidden;
+  min-height: 36px;
+  margin-top: 2px;
+  color: var(--ambar-claro);
+  font-size: 12px;
+  line-height: 18px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.rec-acoes {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.rec-acoes .botao { flex: 1; min-width: 0; min-height: 36px; padding: 4px 8px; font-size: 13px; }
+
+.rec-acoes .botao-icone { flex: none; }
+
+.rec-restaurar { margin-top: 24px; color: var(--texto-apagado); font-size: 13px; text-align: center; }
+
+.rec-restaurar .botao-texto { margin-left: 4px; }
+
+@media (max-width: 860px) {
+  /* O menu fica em uma linha e rola para o lado quando não cabe. */
+  .navegacao { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .navegacao a { flex: none; white-space: nowrap; }
+  .rec-acoes .botao { padding: 4px; font-size: 12px; white-space: nowrap; }
+}

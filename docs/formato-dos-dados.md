@@ -5,7 +5,7 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 ```json
 {
   "app": "filmes-e-series",
-  "version": 3,
+  "version": 4,
   "exportedAt": "2026-11-05T18:30:00.000Z",
   "items": [
     {
@@ -36,6 +36,13 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
       "rating": 8,
       "runtime": 47,
       "updatedAt": "2026-10-01T22:00:00.000Z"
+    }
+  ],
+  "dismissed": [
+    {
+      "tmdbId": 550,
+      "type": "movie",
+      "createdAt": "2026-10-02T20:00:00.000Z"
     }
   ]
 }
@@ -76,6 +83,16 @@ Ficam na tabela `episode_views` e em `episodeViews` no backup, que é opcional e
 | `rating` | inteiro ou `null` | De 1 a 10, em que cada ponto vale meia estrela |
 | `runtime` | inteiro ou `null` | Duração em minutos |
 | `updatedAt` | texto | Decide conflitos na importação |
+
+## Títulos dispensados
+
+Ficam na tabela `dismissed_titles` e em `dismissed` no backup, que é opcional em backups antigos. A importação só acrescenta registros.
+
+| Campo | Tipo | Regras |
+| --- | --- | --- |
+| `tmdbId` | inteiro | Identificador no TMDB, maior que 0 |
+| `type` | texto | `movie` ou `series` |
+| `createdAt` | texto | Data e hora ISO 8601; é informativa, e a importação não a preserva |
 
 ## Regras de importação
 

@@ -62,9 +62,10 @@
     el('aviso-geral-acao').hidden = !comRepeticao;
   }
 
-  /* tela: carregando, login, biblioteca, titulo, diario, estatisticas ou nenhuma. */
+  /* tela: carregando, login, biblioteca, titulo, recomendacoes, diario, estatisticas ou nenhuma. */
   function mostrarTela(tela) {
-    var dentro = ['biblioteca', 'titulo', 'diario', 'estatisticas'].indexOf(tela) >= 0;
+    var dentro = ['biblioteca', 'titulo', 'recomendacoes', 'diario', 'estatisticas'].indexOf(tela) >= 0;
+    el('tela-recomendacoes').hidden = tela !== 'recomendacoes';
     el('carregando').hidden = tela !== 'carregando';
     el('tela-login').hidden = tela !== 'login';
     el('tela-biblioteca').hidden = tela !== 'biblioteca';
@@ -164,6 +165,7 @@
   function rotaAtual() {
     var hash = location.hash.replace(/^#\/?/, '');
     if (hash === 'quero-assistir') return { nome: 'quero' };
+    if (hash === 'para-voce') return { nome: 'recomendacoes' };
     if (hash === 'diario') return { nome: 'diario' };
     if (hash === 'estatisticas') return { nome: 'estatisticas' };
     if (hash.indexOf('titulo/') === 0) return { nome: 'titulo', id: hash.slice(7) };
@@ -176,6 +178,7 @@
     var navegacao = {
       biblioteca: el('nav-biblioteca'),
       quero: el('nav-quero'),
+      recomendacoes: el('nav-recomendacoes'),
       diario: el('nav-diario'),
       estatisticas: el('nav-estatisticas')
     };
@@ -184,7 +187,13 @@
       else navegacao[nome].removeAttribute('aria-current');
     });
 
-    if (rota.nome === 'diario') {
+    if (rota.nome === 'recomendacoes') {
+      /* Só volta ao topo ao chegar na tela: salvar uma sugestão não deve mudar a rolagem. */
+      var chegando = el('tela-recomendacoes').hidden;
+      mostrarTela('recomendacoes');
+      carregarRecomendacoes();
+      if (chegando) window.scrollTo(0, 0);
+    } else if (rota.nome === 'diario') {
       diarioLimite = DIARIO_POR_VEZ;
       mostrarTela('diario');
       renderizarDiario();
@@ -383,7 +392,7 @@
     el('aba-todos').textContent = 'Todos (' + base.length + ')';
     el('aba-filmes').textContent = 'Filmes (' + conta('movie') + ')';
     el('aba-series').textContent = 'Séries (' + conta('series') + ')';
-    document.querySelectorAll('.aba').forEach(function (aba) {
+    document.querySelectorAll('#tela-biblioteca .aba').forEach(function (aba) {
       aba.setAttribute('aria-pressed', String(aba.dataset.tipo === tipoAtivo));
     });
   }
@@ -1248,6 +1257,188 @@
     }
   }
 
+  /* Para você */
+
+  var REC_POR_TELA = 24;
+  var REC_POUCOS_AVALIADOS = 5;
+  var recTipo = '';
+  var recGosto = null;
+  var recResposta = null;
+  var numeroRecomendacao = 0;
+
+  function mostrarEstadoRec(texto, comRepeticao, comBiblioteca) {
+    el('rec-estado').hidden = !texto;
+    el('rec-estado-texto').textContent = texto || '';
+    el('rec-repetir').hidden = !comRepeticao;
+    el('rec-ir-biblioteca').hidden = !comBiblioteca;
+  }
+
+  async function carregarRecomendacoes() {
+    var numero = ++numeroRecomendacao;
+    recResposta = null;
+    recGosto = Recomendador.lerGosto(Store.listar(), Store.listarVistas());
+    var pedido = Recomendador.pedidoDe(recGosto);
+
+    el('rec-lista').textContent = '';
+    el('rec-nota').hidden = true;
+    el('rec-restaurar').hidden = true;
+    if (!pedido.referencias.length && !pedido.generos.length) {
+      mostrarEstadoRec('As recomendações aparecem quando você registrar títulos que já viu, com nota e dados do TMDB.', false, true);
+      return;
+    }
+
+    mostrarEstadoRec('Procurando títulos para você…');
+    var resposta = await Store.buscarRecomendacoes(pedido);
+    if (numero !== numeroRecomendacao) return;
+    if (resposta.erro) {
+      mostrarEstadoRec(resposta.erro, true);
+      return;
+    }
+    recResposta = resposta.recomendacoes;
+    desenharRecomendacoes();
+  }
+
+  function renderizarNotaRec(gosto) {
+    var partes = [];
+    if (gosto.avaliados < REC_POUCOS_AVALIADOS) {
+      partes.push('Você tem ' + plural(gosto.avaliados, 'título avaliado', 'títulos avaliados') +
+        ': as sugestões melhoram com mais notas, inclusive as baixas.');
+    }
+    if (gosto.semTmdb) {
+      partes.push(plural(gosto.semTmdb, 'título sem ligação com o TMDB conta', 'títulos sem ligação com o TMDB contam') +
+        ' só pelos gêneros. Use Buscar dados no TMDB na página do título.');
+    }
+    el('rec-nota').textContent = partes.join(' ');
+    el('rec-nota').hidden = partes.length === 0;
+  }
+
+  function renderizarRestaurar() {
+    var total = Store.listarDispensados().length;
+    el('rec-restaurar').hidden = total === 0;
+    el('rec-restaurar-texto').textContent = plural(total, 'título dispensado.', 'títulos dispensados.');
+  }
+
+  function desenharRecomendacoes() {
+    document.querySelectorAll('#tela-recomendacoes .aba').forEach(function (aba) {
+      aba.setAttribute('aria-pressed', String(aba.dataset.recTipo === recTipo));
+    });
+    if (!recResposta) return;
+
+    renderizarNotaRec(recGosto);
+    renderizarRestaurar();
+
+    var sugestoes = Recomendador.ordenar(recResposta, recGosto, Store.listar(), Store.listarDispensados())
+      .filter(function (s) { return !recTipo || s.resultado.type === recTipo; })
+      .slice(0, REC_POR_TELA);
+    var destino = el('rec-lista');
+    destino.textContent = '';
+    sugestoes.forEach(function (s) { destino.appendChild(criarCartazRec(s)); });
+    mostrarEstadoRec(sugestoes.length ? '' : 'Nenhuma sugestão por aqui agora. Avalie mais títulos para ampliar a busca.');
+  }
+
+  function abrirSugestao(resultado) {
+    abrirModal(null);
+    buscaModal.value = resultado.title;
+    resultados = [resultado];
+    el('sugestoes').appendChild(criarResultado(resultado, 0));
+    buscaModal.setAttribute('aria-expanded', 'true');
+    selecionarResultado(0);
+  }
+
+  async function adicionarSugestao(resultado, botao) {
+    botao.disabled = true;
+    /* A direção e a duração só vêm nos detalhes; sem elas, o título é salvo mesmo assim. */
+    var detalhes = (await Store.buscarDetalhes(resultado.id, resultado.type)).detalhes;
+    var salvo = await Store.salvar({
+      title: resultado.title,
+      type: resultado.type,
+      status: 'planned',
+      year: resultado.year,
+      genres: resultado.genres,
+      posterUrl: resultado.poster,
+      tmdbId: resultado.id,
+      director: detalhes ? detalhes.directors.join(', ') : null,
+      runtime: detalhes && resultado.type === 'movie' ? detalhes.runtime : null
+    });
+    if (salvo.erro) {
+      botao.disabled = false;
+      avisar(salvo.erro);
+      return;
+    }
+    avisar('Na sua fila: ' + salvo.item.title);
+    renderizarContadores();
+    desenharRecomendacoes();
+  }
+
+  async function dispensarSugestao(resultado, botao) {
+    botao.disabled = true;
+    var retorno = await Store.dispensar(resultado.id, resultado.type);
+    if (retorno.erro) {
+      botao.disabled = false;
+      avisar(retorno.erro);
+      return;
+    }
+    avisar('Dispensado: ' + resultado.title);
+    desenharRecomendacoes();
+  }
+
+  async function restaurarDispensados() {
+    var botao = el('rec-restaurar-acao');
+    botao.disabled = true;
+    var retorno = await Store.restaurarDispensados();
+    botao.disabled = false;
+    if (retorno.erro) {
+      avisar(retorno.erro);
+      return;
+    }
+    desenharRecomendacoes();
+  }
+
+  function criarCartazRec(sugestao) {
+    var r = sugestao.resultado;
+    var cartaz = criar('li', 'cartaz');
+
+    var imagem = criar('div', 'cartaz-imagem');
+    preencherPoster(imagem, r.poster, r.title, 'w342');
+    imagem.appendChild(criar('span', 'selo-tipo', ROTULO_TIPO[r.type]));
+    var voto = criar('span', 'selo-nota');
+    voto.appendChild(icone('estrela'));
+    voto.appendChild(document.createTextNode(r.vote.toLocaleString('pt-BR')));
+    voto.setAttribute('role', 'img');
+    voto.setAttribute('aria-label', 'Nota no TMDB: ' + r.vote.toLocaleString('pt-BR') + ' de 10');
+    imagem.appendChild(voto);
+    cartaz.appendChild(imagem);
+
+    var texto = criar('div', 'cartaz-texto');
+    var titulo = criar('button', 'cartaz-titulo rec-titulo', r.title);
+    titulo.type = 'button';
+    titulo.addEventListener('click', function () { abrirSugestao(r); });
+    texto.appendChild(titulo);
+    var meta = [];
+    if (r.year) meta.push(r.year);
+    if (r.genres.length) meta.push(r.genres[0]);
+    texto.appendChild(criar('p', 'cartaz-meta', meta.join(' • ') || ROTULO_TIPO[r.type]));
+    texto.appendChild(criar('p', 'rec-motivo', sugestao.motivo));
+
+    var acoes = criar('div', 'rec-acoes');
+    var quero = criar('button', 'botao', 'Quero assistir');
+    quero.type = 'button';
+    quero.setAttribute('aria-label', 'Quero assistir: ' + r.title);
+    quero.addEventListener('click', function () { adicionarSugestao(r, quero); });
+    acoes.appendChild(quero);
+    var dispensar = criar('button', 'botao-icone');
+    dispensar.type = 'button';
+    dispensar.title = 'Não me interessa';
+    dispensar.setAttribute('aria-label', 'Não me interessa: ' + r.title);
+    dispensar.appendChild(icone('fechar'));
+    dispensar.addEventListener('click', function () { dispensarSugestao(r, dispensar); });
+    acoes.appendChild(dispensar);
+    texto.appendChild(acoes);
+
+    cartaz.appendChild(texto);
+    return cartaz;
+  }
+
   /* Diário */
 
   var DIARIO_POR_VEZ = 60;
@@ -1690,12 +1881,20 @@
   [filtroGenero, filtroAno, filtroNota, filtroSituacao, filtroOrdem].forEach(function (filtro) {
     filtro.addEventListener('change', aoMudarFiltro);
   });
-  document.querySelectorAll('.aba').forEach(function (aba) {
+  document.querySelectorAll('#tela-biblioteca .aba').forEach(function (aba) {
     aba.addEventListener('click', function () {
       tipoAtivo = aba.dataset.tipo;
       aoMudarFiltro();
     });
   });
+  document.querySelectorAll('#tela-recomendacoes .aba').forEach(function (aba) {
+    aba.addEventListener('click', function () {
+      recTipo = aba.dataset.recTipo;
+      desenharRecomendacoes();
+    });
+  });
+  el('rec-repetir').addEventListener('click', carregarRecomendacoes);
+  el('rec-restaurar-acao').addEventListener('click', restaurarDispensados);
   el('vista-grade').addEventListener('click', function () { definirVista('grade'); });
   el('vista-lista').addEventListener('click', function () { definirVista('lista'); });
 

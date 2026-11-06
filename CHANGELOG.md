@@ -1,5 +1,12 @@
 # Histórico de mudanças
 
+## 6.0.0 - 2026-11-06
+
+- Nova tela **Para você**, com filmes e séries recomendados a partir das suas notas e dos seus gêneros
+- Cada sugestão explica o motivo e pode ir para a fila ou ser dispensada
+- Títulos dispensados incluídos no backup, agora na versão 4 do formato
+- Exige executar `supabase/migracoes/005-recomendacoes.sql` e atualizar a função de busca em projetos existentes
+
 ## 5.0.0 - 2026-11-06
 
 - Lista de episódios por temporada, com marcação, data e nota individuais

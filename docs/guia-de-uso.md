@@ -60,6 +60,18 @@ Nas séries com o status **Vendo**, o botão **+1 episódio** marca o próximo, 
 
 Em séries sem ligação com o TMDB, preencha **Temporada** e **Último episódio** e salve. Nelas, o **+1 episódio** apenas avança o número.
 
+## Para você
+
+A tela **Para você** sugere filmes e séries a partir do que você já viu. Títulos com nota alta pesam mais, e os gêneros que você avalia mal perdem espaço. Títulos em **Quero ver** não contam.
+
+Cada cartaz mostra o motivo da sugestão e a nota do título no TMDB. Nele você pode:
+
+- clicar no nome para ver a sinopse e marcar **Já assisti**;
+- clicar em **Quero assistir** para colocá-lo na sua fila;
+- clicar no **X** (**Não me interessa**) para escondê-lo. **Mostrar de novo**, no fim da página, traz de volta todos os dispensados.
+
+As recomendações do TMDB para um filme costumam ser filmes, e as de uma série, séries. O outro tipo entra pelos seus gêneros favoritos. Títulos sem ligação com o TMDB contam só pelos gêneros.
+
 ## Diário
 
 O **Diário** mostra suas sessões por mês, da mais recente para a mais antiga: cada episódio marcado e cada título com status **Visto** e data. Títulos assistidos sem data não aparecem, e a página avisa quantos são.
@@ -82,6 +94,7 @@ A lista fica no banco de dados, e o backup é uma cópia extra sob o seu control
 - se um título existe nos dois, fica a versão editada por último;
 - títulos que existem só na lista atual são mantidos;
 - os episódios marcados seguem as mesmas regras e também fazem parte do backup;
+- os títulos dispensados das recomendações também fazem parte do backup e continuam dispensados depois de importar;
 - registros inválidos no arquivo são ignorados, e o site informa quantos foram.
 
 Por causa dessa junção, **um título excluído volta** se você importar um backup antigo que ainda o contém.

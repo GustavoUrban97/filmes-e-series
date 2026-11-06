@@ -4,9 +4,11 @@
 
   var TABELA = 'titles';
   var TABELA_VISTAS = 'episode_views';
+  var TABELA_DISPENSADOS = 'dismissed_titles';
+  var CONFLITO_DISPENSADOS = 'user_id,tmdb_id,type';
   var CHAVE_LOCAL_ANTIGA = 'filmes-e-series:v1';
   var APP = 'filmes-e-series';
-  var VERSAO = 3;
+  var VERSAO = 4;
   var PREFIXO_POSTER = 'https://image.tmdb.org/t/p/';
   var ANO_MINIMO = 1888;
   var TAMANHO_PAGINA = 1000;
@@ -22,6 +24,7 @@
   var cliente = null;
   var itens = [];
   var vistas = [];
+  var dispensados = [];
 
   function inteiroOuNulo(valor) {
     if (valor === null || valor === undefined || valor === '') return null;
@@ -241,6 +244,7 @@
   async function sair() {
     itens = [];
     vistas = [];
+    dispensados = [];
     /* Encerra só este aparelho, inclusive se o servidor estiver fora do ar. */
     await cliente.auth.signOut({ scope: 'local' });
   }
@@ -260,10 +264,13 @@
 
   async function carregar() {
     try {
-      var linhas = await Promise.all([lerTudo(TABELA), lerTudo(TABELA_VISTAS)]);
-      if (!linhas[0] || !linhas[1]) return { erro: ERRO_CONEXAO };
+      var linhas = await Promise.all([lerTudo(TABELA), lerTudo(TABELA_VISTAS), lerTudo(TABELA_DISPENSADOS)]);
+      if (!linhas[0] || !linhas[1] || !linhas[2]) return { erro: ERRO_CONEXAO };
       itens = linhas[0].map(daLinha);
       vistas = linhas[1].map(daLinhaVista);
+      dispensados = linhas[2].map(function (linha) {
+        return { tmdbId: linha.tmdb_id, type: linha.type, createdAt: linha.created_at };
+      });
       return {};
     } catch (e) {
       return { erro: ERRO_CONEXAO };
@@ -448,6 +455,48 @@
     }
   }
 
+  var ERRO_RECOMENDACOES = 'Não foi possível buscar recomendações agora.';
+  var recomendacoesEmCache = {};
+
+  async function buscarRecomendacoes(pedido) {
+    var chave = JSON.stringify(pedido);
+    if (recomendacoesEmCache[chave]) return { recomendacoes: recomendacoesEmCache[chave] };
+    try {
+      var resposta = await cliente.functions.invoke('swift-handler', { body: { recomendar: pedido } });
+      if (resposta.error || !resposta.data || !resposta.data.recomendacoes) return { erro: ERRO_RECOMENDACOES };
+      recomendacoesEmCache[chave] = resposta.data.recomendacoes;
+      return { recomendacoes: resposta.data.recomendacoes };
+    } catch (e) {
+      return { erro: ERRO_RECOMENDACOES };
+    }
+  }
+
+  async function dispensar(idTmdb, tipo) {
+    var erro = { erro: 'Não foi possível dispensar. ' + ERRO_CONEXAO };
+    try {
+      var resposta = await cliente.from(TABELA_DISPENSADOS)
+        .upsert({ tmdb_id: idTmdb, type: tipo }, { onConflict: CONFLITO_DISPENSADOS, ignoreDuplicates: true });
+      if (resposta.error) return erro;
+    } catch (e) {
+      return erro;
+    }
+    dispensados.push({ tmdbId: idTmdb, type: tipo, createdAt: new Date().toISOString() });
+    return {};
+  }
+
+  async function restaurarDispensados() {
+    var erro = { erro: 'Não foi possível restaurar. ' + ERRO_CONEXAO };
+    try {
+      /* A API exige um filtro; as regras do banco limitam a exclusão às linhas da conta. */
+      var resposta = await cliente.from(TABELA_DISPENSADOS).delete().gt('tmdb_id', 0);
+      if (resposta.error) return erro;
+    } catch (e) {
+      return erro;
+    }
+    dispensados = [];
+    return {};
+  }
+
   function obter(id) {
     return itens.filter(function (item) { return item.id === id; })[0] || null;
   }
@@ -458,8 +507,26 @@
       version: VERSAO,
       exportedAt: new Date().toISOString(),
       items: itens,
-      episodeViews: vistas
+      episodeViews: vistas,
+      dismissed: dispensados
     }, null, 2);
+  }
+
+  /* Só acrescenta: um título dispensado continua dispensado. Devolve quantos registros eram inválidos. */
+  async function mesclarDispensados(lista) {
+    var linhas = [];
+    var ignorados = 0;
+    (Array.isArray(lista) ? lista : []).forEach(function (entrada) {
+      var id = entrada ? inteiroOuNulo(entrada.tmdbId) : null;
+      if (id > 0 && TIPOS.indexOf(entrada.type) >= 0) linhas.push({ tmdb_id: id, type: entrada.type });
+      else ignorados++;
+    });
+    for (var i = 0; i < linhas.length; i += TAMANHO_LOTE) {
+      var resposta = await cliente.from(TABELA_DISPENSADOS).upsert(linhas.slice(i, i + TAMANHO_LOTE),
+        { onConflict: CONFLITO_DISPENSADOS, ignoreDuplicates: true });
+      if (resposta.error) return { erro: 'A importação dos dispensados foi interrompida. ' + ERRO_CONEXAO };
+    }
+    return { total: linhas.length, ignorados: ignorados };
   }
 
   /* Mescla pelo id: registros novos entram e, em conflito, vale o editado por último. */
@@ -483,7 +550,7 @@
     return { episodios: linhas.length, ignorados: ignoradas };
   }
 
-  async function mesclar(lista, listaVistas) {
+  async function mesclar(lista, listaVistas, listaDispensados) {
     var adicionados = 0;
     var atualizados = 0;
     var ignorados = 0;
@@ -523,15 +590,20 @@
     if (recarga.erro) return recarga;
 
     var episodios = 0;
+    var novosDispensados = 0;
     try {
       var resultadoVistas = await mesclarVistas(listaVistas);
       if (resultadoVistas.erro) return resultadoVistas;
       episodios = resultadoVistas.episodios;
       ignorados += resultadoVistas.ignorados;
+      var resultadoDispensados = await mesclarDispensados(listaDispensados);
+      if (resultadoDispensados.erro) return resultadoDispensados;
+      novosDispensados = resultadoDispensados.total;
+      ignorados += resultadoDispensados.ignorados;
     } catch (e) {
       return { erro: 'A importação dos episódios foi interrompida. ' + ERRO_CONEXAO };
     }
-    if (episodios) {
+    if (episodios || novosDispensados) {
       recarga = await carregar();
       if (recarga.erro) return recarga;
     }
@@ -552,7 +624,7 @@
     if (dados.version > VERSAO) {
       return Promise.resolve({ erro: 'Este backup foi criado por uma versão mais nova do site.' });
     }
-    return mesclar(dados.items, dados.episodeViews);
+    return mesclar(dados.items, dados.episodeViews, dados.dismissed);
   }
 
   /* Lista da versão anterior do site, que guardava os títulos no navegador. */
@@ -590,6 +662,10 @@
     buscarTitulos: buscarTitulos,
     buscarDetalhes: buscarDetalhes,
     buscarTemporada: buscarTemporada,
+    buscarRecomendacoes: buscarRecomendacoes,
+    dispensar: dispensar,
+    restaurarDispensados: restaurarDispensados,
+    listarDispensados: function () { return dispensados.slice(); },
     listarVistas: listarVistas,
     marcarEpisodios: marcarEpisodios,
     atualizarVista: atualizarVista,

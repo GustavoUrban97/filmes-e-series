@@ -99,3 +99,34 @@ drop policy if exists "Excluir os próprios episódios" on public.episode_views;
 create policy "Excluir os próprios episódios" on public.episode_views
   for delete to authenticated
   using ((select auth.uid()) = user_id);
+
+-- Títulos que a pessoa não quer ver nas recomendações.
+
+create table if not exists public.dismissed_titles (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null default auth.uid() references auth.users (id) on delete cascade,
+  tmdb_id integer not null check (tmdb_id > 0),
+  type text not null check (type in ('movie', 'series')),
+  created_at timestamptz not null default now(),
+  unique (user_id, tmdb_id, type)
+);
+
+alter table public.dismissed_titles enable row level security;
+
+revoke all on table public.dismissed_titles from anon, public;
+grant select, insert, delete on table public.dismissed_titles to authenticated;
+
+drop policy if exists "Ler os próprios dispensados" on public.dismissed_titles;
+create policy "Ler os próprios dispensados" on public.dismissed_titles
+  for select to authenticated
+  using ((select auth.uid()) = user_id);
+
+drop policy if exists "Criar os próprios dispensados" on public.dismissed_titles;
+create policy "Criar os próprios dispensados" on public.dismissed_titles
+  for insert to authenticated
+  with check ((select auth.uid()) = user_id);
+
+drop policy if exists "Excluir os próprios dispensados" on public.dismissed_titles;
+create policy "Excluir os próprios dispensados" on public.dismissed_titles
+  for delete to authenticated
+  using ((select auth.uid()) = user_id);
