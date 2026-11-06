@@ -5,6 +5,14 @@ const PROJETO_TESTES = 'https://xjcfkdbrmxsnyhrtshva.supabase.co';
 const EMAIL = process.env.TESTE_A_EMAIL;
 const SENHA = process.env.TESTE_A_SENHA;
 
+async function entrar(page) {
+  await page.goto(SITE);
+  await page.fill('#formulario-login input[name="email"]', EMAIL);
+  await page.fill('#login-senha', SENHA);
+  await page.click('#botao-entrar');
+  await expect(page.locator('#topo')).toBeVisible();
+}
+
 /* Limpa a conta pela camada de dados. Recusa rodar fora do projeto de testes, porque apaga tudo. */
 async function apagarTudo(page) {
   const restantes = await page.evaluate(async (projeto) => {
@@ -45,11 +53,7 @@ const testeComConta = test.extend({
   sessao: [async ({ browser }, usar) => {
     const contexto = await browser.newContext();
     const pagina = await contexto.newPage();
-    await pagina.goto(SITE);
-    await pagina.fill('#formulario-login input[name="email"]', EMAIL);
-    await pagina.fill('#login-senha', SENHA);
-    await pagina.click('#botao-entrar');
-    await expect(pagina.locator('#topo')).toBeVisible();
+    await entrar(pagina);
     const estado = await contexto.storageState();
     await contexto.close();
     await usar(estado);
@@ -132,5 +136,6 @@ module.exports = {
   recarregar,
   esperarSinopse,
   simularRecomendacoes,
+  entrar,
   EMAIL
 };

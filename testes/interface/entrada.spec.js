@@ -1,4 +1,4 @@
-const { test, testeSemConta, expect, EMAIL } = require('./auxiliares');
+const { test, testeSemConta, expect, entrar, EMAIL } = require('./auxiliares');
 
 testeSemConta('sem login, só a tela de entrada aparece', async ({ page }) => {
   await page.goto('/');
@@ -21,7 +21,9 @@ test('em localhost, o site usa o ambiente de testes e avisa', async ({ page }) =
   expect(ambiente).toBe('testes');
 });
 
-test('sair volta à tela de entrada', async ({ page }) => {
+/* Usa um login próprio: sair encerra a sessão no servidor, e a sessão dos outros testes precisa continuar válida. */
+testeSemConta('sair volta à tela de entrada', async ({ page }) => {
+  await entrar(page);
   await page.click('#botao-sair');
   await expect(page.locator('#tela-login')).toBeVisible();
   await page.reload();
