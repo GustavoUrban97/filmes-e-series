@@ -11,6 +11,8 @@ create table if not exists public.titles (
   season integer check (season >= 0),
   episode integer check (episode >= 0),
   poster_url text check (poster_url like 'https://image.tmdb.org/t/p/%'),
+  tmdb_id integer check (tmdb_id > 0),
+  director text,
   rating integer check (rating between 1 and 10),
   watched_on date,
   genres text[] not null default '{}',

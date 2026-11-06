@@ -1,6 +1,6 @@
-# Filmes e Séries
+# Claquete
 
-Site pessoal, com login, para registrar filmes e séries: o que você já assistiu, está assistindo e quer ver.
+Catálogo pessoal, com login, para registrar filmes e séries: o que você já assistiu, está assistindo e quer ver.
 
 **Acesse:** https://gustavourban97.github.io/filmes-e-series/
 
@@ -8,20 +8,18 @@ Site pessoal, com login, para registrar filmes e séries: o que você já assist
 
 - Login com e-mail e senha, com cadastro fechado
 - Lista salva em banco de dados, disponível em qualquer aparelho
-- Busca de filmes e séries pelo TMDB, que preenche título, tipo, ano, gêneros e imagem
-- Cadastro com situação, ano, temporada e último episódio visto, data, nota de até 5 estrelas, gêneros e anotações
-- Edição e exclusão de títulos
-- Busca por título, gênero ou anotação, sem diferenciar acentos
-- Filtros por tipo e situação, e cinco opções de ordenação
-- Resumo com totais e nota média
+- Biblioteca em grade de pôsteres, com filtros, busca, ordenação e métricas
+- Busca de filmes e séries pelo TMDB, com prévia antes de adicionar
+- Página de cada título, com sinopse, direção, elenco, status, nota de até 5 estrelas e anotações
+- Acompanhamento de séries, com botão **+1 episódio** e progresso da temporada
 - Backup em JSON, para exportar e importar
-- [Identidade visual Sala escura](docs/identidade-visual.md), com layout adaptado ao celular
+- [Identidade visual Cinematic Amber](docs/identidade-visual.md), com layout adaptado ao celular
 
 ## Onde ficam os dados
 
 Os títulos ficam em um banco PostgreSQL no [Supabase](https://supabase.com). Só uma conta conectada acessa as próprias linhas, regra aplicada pelo próprio banco com Row Level Security. Sem login, a página mostra apenas a tela de entrada, e a tabela não responde com nenhum dado.
 
-O navegador guarda apenas a sessão de login.
+O navegador guarda apenas a sessão de login e a preferência de exibição.
 
 ## Rodar localmente
 
@@ -32,22 +30,18 @@ Antes de usar, siga a [configuração do Supabase](docs/configuracao-supabase.md
 ## Estrutura
 
 ```text
-index.html           Estrutura da página
-css/styles.css       Estilos e temas
+index.html           Estrutura das telas e ícones
+css/styles.css       Estilos e identidade visual
 js/config.js         Endereço e chave pública do Supabase
-js/store.js          Dados: login, validação, banco e backup
-js/app.js            Interface: login, lista, filtros e formulário
+js/store.js          Dados: login, validação, banco, TMDB e backup
+js/app.js            Interface: rotas, biblioteca, detalhes e modal
 supabase/schema.sql  Tabela e regras de acesso
 supabase/migracoes/  Mudanças para bancos já criados
 supabase/functions/  Função que consulta o TMDB
 img/                 Ícone do site e logo do TMDB
-fonts/               Fontes do site e suas licenças
+fonts/               Fonte do site e sua licença
 docs/                Documentação
 ```
-
-## Créditos
-
-Dados e pôsteres de filmes e séries: [TMDB](https://www.themoviedb.org). Este site usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.
 
 ## Documentação
 
@@ -57,3 +51,7 @@ Dados e pôsteres de filmes e séries: [TMDB](https://www.themoviedb.org). Este 
 - [Formato dos dados](docs/formato-dos-dados.md)
 - [Publicação](docs/publicacao.md)
 - [Histórico de mudanças](CHANGELOG.md)
+
+## Créditos
+
+Dados e pôsteres de filmes e séries: [TMDB](https://www.themoviedb.org). Este site usa a API do TMDB, mas não é endossado nem certificado pelo TMDB.

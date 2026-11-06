@@ -1,5 +1,13 @@
 # Histórico de mudanças
 
+## 4.0.0 - 2026-11-06
+
+- O site passa a se chamar Claquete, com a identidade Cinematic Amber
+- Biblioteca em grade de pôsteres, com abas, filtros, exibição em lista, paginação e métricas
+- Nova tela de login e novo modal de adicionar, com prévia do título
+- Página de detalhes com sinopse, direção, elenco, status, avaliação e progresso da temporada
+- Exige executar `supabase/migracoes/003-dados-tmdb.sql` e atualizar a função de busca em projetos existentes
+
 ## 3.0.0 - 2026-11-06
 
 - Nova identidade visual, Sala escura, com tema único escuro

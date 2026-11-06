@@ -8,6 +8,8 @@ const ORIGENS_PERMITIDAS = [
 ];
 const TMDB = "https://api.themoviedb.org/3";
 const POSTER = "https://image.tmdb.org/t/p/w92";
+const FUNDO = "https://image.tmdb.org/t/p/w1280";
+const MAX_ELENCO = 4;
 const IDIOMA = "pt-BR";
 const MAX_RESULTADOS = 8;
 const MAX_CONSULTA = 100;
@@ -75,8 +77,33 @@ async function buscar(consulta: string) {
         year: data ? Number(data.slice(0, 4)) : null,
         genres: (r.genre_ids || []).map((id: number) => mapas[r.media_type][id]).filter(Boolean),
         poster: r.poster_path ? POSTER + r.poster_path : null,
+        vote: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
       };
     });
+}
+
+async function detalhar(id: number, tipo: string) {
+  const filme = tipo === "movie";
+  const r = await tmdb(`/${filme ? "movie" : "tv"}/${id}`, { append_to_response: "credits" });
+  const creditos = r.credits || { cast: [], crew: [] };
+  // deno-lint-ignore no-explicit-any
+  const nomes = (lista: any[]) => lista.map((p) => p.name).filter(Boolean);
+
+  return {
+    id: r.id,
+    originalTitle: r.original_title || r.original_name || null,
+    overview: r.overview || null,
+    runtime: filme ? r.runtime || null : (r.episode_run_time || [])[0] || null,
+    vote: r.vote_average ? Math.round(r.vote_average * 10) / 10 : null,
+    backdrop: r.backdrop_path ? FUNDO + r.backdrop_path : null,
+    // deno-lint-ignore no-explicit-any
+    directors: filme ? nomes(creditos.crew.filter((p: any) => p.job === "Director")) : nomes(r.created_by || []),
+    cast: nomes(creditos.cast).slice(0, MAX_ELENCO),
+    // deno-lint-ignore no-explicit-any
+    seasons: filme ? [] : (r.seasons || []).filter((s: any) => s.season_number > 0)
+      // deno-lint-ignore no-explicit-any
+      .map((s: any) => ({ number: s.season_number, episodes: s.episode_count })),
+  };
 }
 
 Deno.serve(async (requisicao) => {
@@ -99,15 +126,25 @@ Deno.serve(async (requisicao) => {
   }
 
   let consulta = "";
+  let id: unknown;
+  let tipo: unknown;
   try {
     const corpo = await requisicao.json();
     consulta = typeof corpo.q === "string" ? corpo.q.trim().slice(0, MAX_CONSULTA) : "";
+    id = corpo.id;
+    tipo = corpo.type;
   } catch {
     return responder({ erro: "Requisição inválida." }, 400);
   }
-  if (consulta.length < 2) return responder({ resultados: [] });
+
+  const pedeDetalhes = id !== undefined;
+  if (pedeDetalhes && !(Number.isInteger(id) && (id as number) > 0 && (tipo === "movie" || tipo === "series"))) {
+    return responder({ erro: "Requisição inválida." }, 400);
+  }
+  if (!pedeDetalhes && consulta.length < 2) return responder({ resultados: [] });
 
   try {
+    if (pedeDetalhes) return responder({ detalhes: await detalhar(id as number, tipo as string) });
     return responder({ resultados: await buscar(consulta) });
   } catch (erro) {
     console.error(String(erro));

@@ -6,43 +6,55 @@ Entre com o seu e-mail e a sua senha. O login continua ativo neste aparelho até
 
 ## Adicionar um título
 
-1. Clique em **Adicionar título** e comece a digitar o nome.
-2. Escolha o filme ou a série na lista. Título, tipo, ano, gêneros e imagem são preenchidos automaticamente, e você ainda pode alterá-los.
-3. Ajuste a situação e, se já assistiu, a data e a nota.
-4. Clique em **Salvar**.
+1. Clique em **Adicionar** e digite o nome do filme ou da série.
+2. Escolha na lista. A prévia à direita mostra sinopse, direção e elenco.
+3. Clique em uma das opções:
+   - **Já assisti:** salva e abre a página do título, para você dar a nota.
+   - **Estou assistindo:** aparece apenas em séries.
+   - **Quero assistir:** salva na sua fila.
 
-Se o título não aparecer na lista, preencha os campos manualmente. Só o título é obrigatório.
+Se o título já estiver na biblioteca, o site oferece abri-lo, sem criar uma cópia.
 
-Para colocar a imagem em um título já salvo, clique em **Editar**, digite o nome de novo e escolha na lista. O botão **Remover**, ao lado da imagem no formulário, tira a imagem sem alterar o resto.
-
-## Acompanhar uma série
-
-Em uma série, preencha **Temporada** e **Último episódio visto**. O progresso aparece na lista, por exemplo `Temporada 2, episódio 5`. Nas séries com a situação **Assistindo**, o botão **+1 episódio** no card avança o número com um clique. Para mudar de temporada, clique em **Editar** e ajuste os dois campos.
-
-## Dar uma nota
-
-A nota vai de meia a 5 estrelas. Clique ou arraste sobre as estrelas: a metade esquerda de cada uma vale meia estrela. No teclado, use as setas. O botão **Limpar** remove a nota.
-
-Alguns campos dependem do que você escolheu:
-
-| Campo | Aparece quando |
-| --- | --- |
-| Temporada e Último episódio visto | o tipo é **Série** |
-| Visto em e Nota | a situação é **Assistido** |
-
-> Ao mudar um título de **Assistido** para outra situação, a nota e a data são apagadas ao salvar.
+Se ele não aparecer na lista, clique em **Não achou? Preencher manualmente**. Só o título é obrigatório.
 
 ## Encontrar um título
 
-- **Buscar** procura no título, nos gêneros e nas anotações. Acentos não fazem diferença: `serie` encontra `Série`.
-- **Tipo** e **Situação** restringem a lista.
-- **Ordenar por** muda a ordem. Títulos sem o dado usado na ordenação, como a nota, ficam no fim.
+- **Biblioteca** mostra tudo, e **Quero assistir** mostra só a sua fila.
+- As abas separam filmes e séries.
+- O filtro procura no título, na direção, nos gêneros e nas anotações, e `Ctrl+K` leva até ele. Acentos não fazem diferença.
+- Também é possível filtrar por gênero, ano, nota e situação, ordenar e alternar entre grade e lista.
 
-O resumo no topo sempre considera a lista inteira, sem aplicar os filtros. A nota média considera apenas os títulos com nota.
+As métricas no fim da página sempre consideram a biblioteca inteira, sem aplicar os filtros.
 
-## Editar ou excluir
+## Página do título
 
-Use os botões **Editar** e **Excluir** de cada título. A exclusão pede confirmação e não pode ser desfeita.
+Clique em um cartaz para abrir a página do título. Nela você pode:
+
+- mudar o status entre **Quero ver**, **Vendo** e **Visto**;
+- dar a nota e informar a data, se já assistiu;
+- escrever anotações, cuja primeira linha aparece no cartaz;
+- clicar em **Salvar avaliação** para gravar tudo isso.
+
+> Ao mudar um título de **Visto** para outro status, a nota e a data são apagadas ao salvar.
+
+### Dar uma nota
+
+A nota vai de meia a 5 estrelas. Clique ou arraste sobre as estrelas: a metade esquerda de cada uma vale meia estrela. No teclado, use as setas. O botão **Limpar** remove a nota.
+
+### Títulos sem dados do TMDB
+
+Títulos antigos ou preenchidos à mão não têm sinopse, direção e elenco. Clique em **Buscar dados no TMDB** e escolha o título. Status, nota e anotações são mantidos.
+
+### Editar ou remover
+
+- **Editar dados do título** troca o título no TMDB ou corrige os dados manualmente. No preenchimento manual, também é possível remover a imagem.
+- **Remover da biblioteca** pede confirmação e não pode ser desfeito.
+
+## Acompanhar uma série
+
+Na página da série, preencha **Temporada** e **Último episódio** e salve. Com o título ligado ao TMDB, uma barra mostra o progresso na temporada.
+
+Nas séries com o status **Vendo**, o botão **+1 episódio** avança o número com um clique, tanto no cartaz quanto na página. Para mudar de temporada, ajuste os dois campos.
 
 ## Backup
 
@@ -61,7 +73,7 @@ Por causa dessa junção, **um título excluído volta** se você importar um ba
 
 ## Lista salva na versão anterior
 
-Se este navegador ainda tiver títulos da versão anterior do site, um aviso aparece depois do login. Escolha **Enviar para o banco** para levá-los à sua conta ou **Apagar do navegador** para descartá-los. O aviso só aparece no mesmo endereço em que a lista foi salva.
+Se este navegador ainda tiver títulos da primeira versão do site, um aviso aparece depois do login. Escolha **Enviar para o banco** para levá-los à sua conta ou **Apagar do navegador** para descartá-los. O aviso só aparece no mesmo endereço em que a lista foi salva.
 
 ## Usar em mais de um aparelho
 

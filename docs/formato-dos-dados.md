@@ -17,6 +17,8 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
       "season": 2,
       "episode": 5,
       "posterUrl": "https://image.tmdb.org/t/p/w92/exemplo.jpg",
+      "tmdbId": 603,
+      "director": "Nome da direção",
       "rating": 9,
       "watchedOn": "2026-10-01",
       "genres": ["drama", "suspense"],
@@ -40,6 +42,8 @@ Os dados são gravados na tabela `titles` do Supabase, definida em [`supabase/sc
 | `season` | inteiro ou `null` | Temporada atual, maior ou igual a 0; apenas em séries. Backups da versão 1 usam `seasons`, que é aceito na importação |
 | `episode` | inteiro ou `null` | Último episódio visto, maior ou igual a 0; apenas em séries |
 | `posterUrl` | texto ou `null` | Endereço da imagem no TMDB; outros endereços são descartados |
+| `tmdbId` | inteiro ou `null` | Identificador no TMDB, usado para buscar sinopse e créditos; opcional em backups antigos |
+| `director` | texto ou `null` | Direção do filme ou criação da série, mostrada no cartaz; opcional em backups antigos |
 | `rating` | inteiro ou `null` | De 1 a 10, em que cada ponto vale meia estrela (7 = 3,5 estrelas); apenas com `status` igual a `watched` |
 | `watchedOn` | texto ou `null` | Data `AAAA-MM-DD`; apenas com `status` igual a `watched` |
 | `genres` | lista de textos | Sem repetição, ignorando maiúsculas e minúsculas |

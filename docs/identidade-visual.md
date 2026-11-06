@@ -1,64 +1,66 @@
-# Identidade visual: Sala escura
+# Identidade visual: Cinematic Amber
 
-As luzes se apagam e o pôster vira a estrela. A interface fica no escuro, em tons quentes, para que as imagens dos títulos sejam o que mais chama a atenção.
+O Claquete lembra uma sala de cinema: ambiente escuro, luz âmbar e clareza editorial. A interface fica em segundo plano para que os pôsteres chamem a atenção. Esta identidade substitui a Sala escura e segue as telas de referência criadas para o projeto.
 
 O site tem apenas o tema escuro. Os valores abaixo ficam em `css/styles.css`, como variáveis em `:root`.
 
 ## Princípios
 
-1. **O pôster vem primeiro.** Ele ocupa toda a altura do card, de ponta a ponta.
-2. **O âmbar é a luz da sala.** Ele aparece só em ações principais, estrelas e foco. Se estiver em todo lugar, deixa de orientar.
-3. **A cortina é um detalhe.** O bordô marca o topo da página, o topo de login e formulário e o espaço de um título sem pôster. Nunca é usado em textos.
-4. **Formas retas e planas.** Cantos de 4 px, sem sombras nem degradês.
+1. **O pôster vem primeiro.** A biblioteca é uma grade de cartazes na proporção 2:3.
+2. **O âmbar é a luz da sala.** Ele marca ações principais, itens ativos, estrelas e foco.
+3. **Só dados reais.** Sem números de exemplo: uma métrica ou informação só aparece se vier da biblioteca ou do TMDB.
+4. **Profundidade por camadas.** As superfícies clareiam conforme sobem, com brilho âmbar apenas nas ações principais.
 
 ## Cores
 
 | Variável | Valor | Uso |
 | --- | --- | --- |
-| `--fundo` | `#120D0E` | Fundo da página |
-| `--superficie` | `#1E1517` | Cards, login e formulário |
-| `--superficie-alta` | `#2A1A1D` | Destaque ao passar o ponteiro |
-| `--campo` | `#171011` | Fundo de campos e sugestões |
-| `--borda` | `#3D2B2E` | Linhas divisórias |
-| `--borda-campo` | `#7A6266` | Borda de campos e botões |
-| `--texto` | `#F4E9DC` | Texto principal |
-| `--texto-suave` | `#C9B7A6` | Texto de apoio |
-| `--texto-dica` | `#A08F83` | Texto de exemplo em campos |
-| `--cortina` | `#7E1F2B` | Faixa do topo e pôster vazio |
-| `--ambar` | `#E9B44C` | Ação principal, estrelas e foco |
-| `--filme` | `#D9C7B2` | Etiqueta de filme |
-| `--serie` | `#EFA2A8` | Etiqueta de série |
-| `--erro` | `#FFB4A8` | Texto de erro, sobre `--erro-fundo` (`#3A1518`) |
+| `--fundo` | `#131316` | Fundo da página |
+| `--fundo-baixo` | `#0E0E11` | Rodapé, selos sobre o pôster e faixas internas |
+| `--superficie` | `#1F1F22` | Cartões e painéis |
+| `--superficie-alta` | `#2A2A2D` | Campos e botões secundários |
+| `--superficie-maxima` | `#353438` | Destaques e seleção |
+| `--texto` | `#E4E1E6` | Texto principal |
+| `--texto-suave` | `#D4C5AC` | Texto de apoio |
+| `--texto-apagado` | `#A89B84` | Texto de exemplo e créditos |
+| `--ambar` | `#F5B700` | Ação principal, aba ativa e estrelas |
+| `--ambar-claro` | `#FFD88A` | Marca, item ativo e destaques em texto |
+| `--sobre-ambar` | `#261A00` | Texto sobre o âmbar |
+| `--estrela-vazia` | `#6B6358` | Estrelas não preenchidas |
+| `--erro` | `#FFB4AB` | Texto de erro, sobre `--erro-fundo` (`#3F1214`) ou superfícies |
+
+As telas de referência usam `#6A6A75` para textos de exemplo. O site usa `--texto-apagado`, porque aquele tom não atinge o contraste mínimo.
 
 ### Contraste
 
-Todas as combinações de texto superam o mínimo de 4,5:1 das diretrizes WCAG AA, e as bordas de campo e as estrelas vazias superam 3:1.
-
 | Combinação | Contraste |
 | --- | --- |
-| Texto principal sobre o fundo | 16,09:1 |
-| Texto suave sobre a superfície | 9,20:1 |
-| Texto de exemplo sobre o campo | 6,04:1 |
-| Texto do botão sobre o âmbar | 9,64:1 |
-| Erro sobre o fundo de erro | 9,49:1 |
-| Borda de campo sobre o campo | 3,37:1 |
+| Texto principal sobre o fundo | 14,32:1 |
+| Texto suave sobre a superfície | 9,69:1 |
+| Texto de exemplo sobre o campo | 5,24:1 |
+| Âmbar claro sobre a superfície | 12,09:1 |
+| Texto sobre o botão âmbar | 9,48:1 |
+| Erro sobre o fundo de erro | 9,46:1 |
+| Estrela vazia sobre o fundo baixo (elemento gráfico) | 3,26:1 |
 
 ## Tipografia
 
-| Fonte | Uso |
-| --- | --- |
-| **Fraunces** | Nome do site, títulos de filmes e seções, e números do resumo |
-| **Inter** | Textos de apoio, campos e botões |
+Toda a interface usa **Inter**, servida pelo próprio site a partir de `fonts/`, com a licença SIL Open Font License. Títulos são compactados com espaçamento negativo, e etiquetas curtas podem usar caixa alta com espaçamento maior.
 
-As duas ficam na pasta `fonts/`, com as licenças SIL Open Font License, e são servidas pelo próprio site.
+## Formas
+
+- Cartazes e painéis: cantos de 12 a 16 px.
+- Botões e campos: cantos de 8 px.
+- Abas, gêneros e etiquetas de tipo: formato de pílula.
 
 ## Componentes
 
-- **Card de título:** pôster à esquerda, sem borda, sobre `--superficie`. Sem imagem, mostra a inicial do título sobre o bordô.
-- **Botões:** um único botão âmbar por contexto, para a ação principal. Os demais são contornados.
-- **Estrelas:** âmbar quando preenchidas, sempre acompanhadas do número.
-- **Resumo:** números grandes em Fraunces, separados por linhas finas, sem caixas.
+- **Cartaz:** pôster 2:3 com selo de tipo, nota e progresso, seguido de título, ano, direção e o início da anotação. Sem imagem, mostra a inicial do título.
+- **Botões:** um botão âmbar por contexto. Os demais são discretos.
+- **Estrelas:** âmbar quando preenchidas, com meia estrela, sempre acompanhadas do número.
+- **Modal de adicionar:** resultados à esquerda e prévia à direita, com faixa âmbar no topo.
+- **Status:** controle segmentado entre Quero ver, Vendo e Visto.
 
 ## Ícone
 
-`img/icone.svg`: uma estrela âmbar sobre um quadrado bordô.
+`img/icone.svg`: uma claquete âmbar sobre fundo escuro.

@@ -63,6 +63,9 @@
       ? entrada.posterUrl
       : null;
 
+    var idTmdb = inteiroOuNulo(entrada.tmdbId);
+    if (idTmdb !== null && !(idTmdb > 0)) idTmdb = null;
+
     var assistido = entrada.status === 'watched';
     var nota = assistido ? inteiroOuNulo(entrada.rating) : null;
     if (nota !== null && !(nota >= 1 && nota <= 10)) return { erro: 'A nota deve ser de 1 a 10.' };
@@ -92,6 +95,8 @@
         season: temporada,
         episode: episodio,
         posterUrl: poster,
+        tmdbId: idTmdb,
+        director: String(entrada.director || '').trim() || null,
         rating: nota,
         watchedOn: vistoEm,
         genres: generos,
@@ -112,6 +117,8 @@
       season: item.season,
       episode: item.episode,
       poster_url: item.posterUrl,
+      tmdb_id: item.tmdbId,
+      director: item.director,
       rating: item.rating,
       watched_on: item.watchedOn,
       genres: item.genres,
@@ -131,6 +138,8 @@
       season: linha.season,
       episode: linha.episode,
       posterUrl: linha.poster_url,
+      tmdbId: linha.tmdb_id,
+      director: linha.director,
       rating: linha.rating,
       watchedOn: linha.watched_on,
       genres: linha.genres,
@@ -244,6 +253,23 @@
     }
   }
 
+  var detalhesEmCache = {};
+
+  async function buscarDetalhes(idTmdb, tipo) {
+    var chave = tipo + ':' + idTmdb;
+    if (detalhesEmCache[chave]) return { detalhes: detalhesEmCache[chave] };
+    try {
+      var resposta = await cliente.functions.invoke('swift-handler', { body: { id: idTmdb, type: tipo } });
+      if (resposta.error || !resposta.data || !resposta.data.detalhes) {
+        return { erro: 'Não foi possível carregar os dados do TMDB agora.' };
+      }
+      detalhesEmCache[chave] = resposta.data.detalhes;
+      return { detalhes: resposta.data.detalhes };
+    } catch (e) {
+      return { erro: 'Não foi possível carregar os dados do TMDB agora.' };
+    }
+  }
+
   function obter(id) {
     return itens.filter(function (item) { return item.id === id; })[0] || null;
   }
@@ -348,6 +374,7 @@
     salvar: salvar,
     remover: remover,
     buscarTitulos: buscarTitulos,
+    buscarDetalhes: buscarDetalhes,
     obter: obter,
     exportar: exportar,
     importar: importar,

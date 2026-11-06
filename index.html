@@ -3,50 +3,91 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Filmes e Séries</title>
-  <meta name="description" content="Registro pessoal de filmes e séries assistidos.">
+  <title>Claquete</title>
+  <meta name="description" content="Seu catálogo pessoal de filmes e séries.">
   <meta name="color-scheme" content="dark">
-  <meta name="theme-color" content="#120d0e">
+  <meta name="theme-color" content="#131316">
   <link rel="icon" href="img/icone.svg" type="image/svg+xml">
   <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' https://cdn.jsdelivr.net; style-src 'self'; font-src 'self'; img-src 'self' https://image.tmdb.org; connect-src https://*.supabase.co wss://*.supabase.co; base-uri 'none'; form-action 'none'">
   <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
-  <header class="topo">
-    <div>
-      <h1>Filmes e Séries</h1>
-      <p class="subtitulo">O que você já viu, está vendo e quer ver.</p>
-    </div>
-    <div class="topo-acoes" id="topo-acoes" hidden>
-      <button type="button" class="botao botao-primario" id="botao-adicionar">Adicionar título</button>
-      <button type="button" class="botao" id="botao-sair">Sair</button>
-    </div>
-  </header>
+  <svg class="sprite" aria-hidden="true">
+    <symbol id="i-claquete" viewBox="0 0 24 24"><path d="M4 10h16v9a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-9Zm-.6-2 1-3.6a1 1 0 0 1 1.2-.7l13.5 3.6a1 1 0 0 1 .7 1.2l-.1.5H3.4Zm4-3.3L6.6 8h2.2l.9-2.7-2.3-.6Zm4.6 1.2L11.1 8h2.3l.9-2.7-2.3-.6v.1Zm4.6 1.2L15.8 8H18l.5-1.5-1.9-.5Z" fill="currentColor"/></symbol>
+    <symbol id="i-mais" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-busca" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2"/><path d="m20 20-3.8-3.8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-fechar" viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-estrela" viewBox="0 0 24 24"><path d="m12 3 2.8 5.9 6.4.8-4.7 4.4 1.2 6.4L12 17.4l-5.7 3.1 1.2-6.4-4.7-4.4 6.4-.8L12 3Z" fill="currentColor"/></symbol>
+    <symbol id="i-grade" viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-lista" viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-email" viewBox="0 0 24 24"><path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-cadeado" viewBox="0 0 24 24"><path d="M6 11h12v9H6zM8.5 11V8a3.5 3.5 0 0 1 7 0v3" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-olho" viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.500 12 21.500 12 18 18.500 12 18.500 2.500 12 2.500 12Z" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="2.500" fill="none" stroke="currentColor" stroke-width="2"/></symbol>
+    <symbol id="i-voltar" viewBox="0 0 24 24"><path d="M19 12H5m6-6-6 6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-avancar" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12.500 4.500 4.500L19 7.500" fill="none" stroke="currentColor" stroke-width="2.500" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-marcador" viewBox="0 0 24 24"><path d="M6 4h12v16.500l-6-4-6 4V4Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4.500v15l12-7.500-12-7.500Z" fill="currentColor"/></symbol>
+    <symbol id="i-lixeira" viewBox="0 0 24 24"><path d="M4 7h16M9 7V4h6v3m3 0-1 13H7L6 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+    <symbol id="i-relogio" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.500" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 7v5.500l3.500 2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-chama" viewBox="0 0 24 24"><path d="M12 3s5.500 4.500 5.500 10a5.500 5.500 0 0 1-11 0c0-2 1-3.500 2-4.500 0 1.500 1 2.500 2 2.500C11 8 12 3 12 3Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/></symbol>
+  </svg>
 
   <p class="carregando" id="carregando" role="status">Carregando…</p>
 
-  <div class="aviso" id="aviso-geral" role="alert" hidden>
+  <div class="aviso aviso-geral" id="aviso-geral" role="alert" hidden>
     <p id="aviso-geral-texto"></p>
     <button type="button" class="botao" id="aviso-geral-acao" hidden>Tentar novamente</button>
   </div>
 
-  <section class="login" id="tela-login" aria-labelledby="login-titulo" hidden>
-    <form id="formulario-login" novalidate>
-      <h2 id="login-titulo">Entrar</h2>
-      <p class="erro" id="login-erro" role="alert" hidden></p>
-      <label class="campo">
-        <span>E-mail</span>
-        <input type="email" name="email" autocomplete="username" required>
-      </label>
-      <label class="campo">
-        <span>Senha</span>
-        <input type="password" name="senha" autocomplete="current-password" required>
-      </label>
-      <button type="submit" class="botao botao-primario" id="botao-entrar">Entrar</button>
-    </form>
+  <section class="login-pagina" id="tela-login" hidden>
+    <div class="login-capa">
+      <p class="selo"><span class="selo-ponto"></span>Acervo cinematográfico</p>
+      <div class="login-chamada">
+        <h1>Tudo o que você já assistiu, <em>num só lugar.</em></h1>
+        <p>Organize sua jornada de filmes e séries, avalie produções e acompanhe cada episódio.</p>
+      </div>
+    </div>
+    <div class="login-lado">
+      <form class="login-cartao" id="formulario-login" novalidate>
+        <svg class="login-marca" aria-hidden="true"><use href="#i-claquete"/></svg>
+        <h2>Entrar</h2>
+        <p class="login-apoio">Acesse sua conta para continuar catalogando</p>
+        <p class="erro" id="login-erro" role="alert" hidden></p>
+        <label class="campo">
+          <span>E-mail</span>
+          <span class="campo-icone">
+            <svg aria-hidden="true"><use href="#i-email"/></svg>
+            <input type="email" name="email" autocomplete="username" required placeholder="nome@exemplo.com">
+          </span>
+        </label>
+        <div class="campo">
+          <label for="login-senha">Senha</label>
+          <span class="campo-icone">
+            <svg aria-hidden="true"><use href="#i-cadeado"/></svg>
+            <input type="password" id="login-senha" name="senha" autocomplete="current-password" required>
+            <button type="button" class="botao-icone" id="mostrar-senha" aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-olho"/></svg></button>
+          </span>
+        </div>
+        <button type="submit" class="botao botao-primario botao-largo" id="botao-entrar"><svg aria-hidden="true"><use href="#i-play"/></svg>Entrar</button>
+      </form>
+    </div>
   </section>
 
-  <main id="tela-app" hidden>
+  <header class="topo" id="topo" hidden>
+    <a class="marca" href="#/"><svg aria-hidden="true"><use href="#i-claquete"/></svg>Claquete</a>
+    <nav class="navegacao" aria-label="Principal">
+      <a href="#/" id="nav-biblioteca">Biblioteca <span class="contador" id="nav-total"></span></a>
+      <a href="#/quero-assistir" id="nav-quero">Quero assistir <span class="contador" id="nav-fila"></span></a>
+    </nav>
+    <div class="topo-acoes">
+      <button type="button" class="botao botao-primario" id="botao-adicionar"><svg aria-hidden="true"><use href="#i-mais"/></svg>Adicionar</button>
+      <span class="usuario" id="usuario-email"></span>
+      <button type="button" class="botao botao-fantasma" id="botao-sair">Sair</button>
+    </div>
+  </header>
+
+  <main class="pagina" id="tela-biblioteca" hidden>
     <div class="aviso aviso-neutro" id="aviso-antiga" hidden>
       <p id="aviso-antiga-texto"></p>
       <div class="aviso-acoes">
@@ -55,63 +96,199 @@
       </div>
     </div>
 
-    <section aria-label="Resumo">
-      <dl class="resumo" id="resumo"></dl>
-    </section>
+    <div class="cabecalho">
+      <div>
+        <p class="sobretitulo">Catálogo pessoal</p>
+        <h1 id="biblioteca-titulo">Minha Biblioteca</h1>
+      </div>
+      <p class="cabecalho-total"><strong id="biblioteca-total"></strong> <span id="biblioteca-total-rotulo"></span></p>
+      <div class="abas" role="group" aria-label="Tipo">
+        <button type="button" class="aba" data-tipo="" id="aba-todos" aria-pressed="true"></button>
+        <button type="button" class="aba" data-tipo="movie" id="aba-filmes" aria-pressed="false"></button>
+        <button type="button" class="aba" data-tipo="series" id="aba-series" aria-pressed="false"></button>
+      </div>
+    </div>
 
     <section class="filtros" aria-label="Busca e filtros">
-      <label class="campo campo-busca">
-        <span>Buscar</span>
-        <input type="search" id="filtro-busca" placeholder="Título, gênero ou anotação" autocomplete="off">
+      <label class="filtro-busca">
+        <svg aria-hidden="true"><use href="#i-busca"/></svg>
+        <span class="sr">Filtrar títulos</span>
+        <input type="search" id="filtro-busca" placeholder="Filtrar por título, direção ou anotação" autocomplete="off">
+        <kbd>Ctrl+K</kbd>
       </label>
-      <label class="campo">
-        <span>Tipo</span>
-        <select id="filtro-tipo">
-          <option value="">Todos</option>
-          <option value="movie">Filmes</option>
-          <option value="series">Séries</option>
+      <label><span class="sr">Gênero</span><select id="filtro-genero"></select></label>
+      <label><span class="sr">Ano</span><select id="filtro-ano"></select></label>
+      <label><span class="sr">Nota</span>
+        <select id="filtro-nota">
+          <option value="">Nota: qualquer</option>
+          <option value="8">4 estrelas ou mais</option>
+          <option value="6">3 estrelas ou mais</option>
+          <option value="sem">Sem nota</option>
         </select>
       </label>
-      <label class="campo">
-        <span>Situação</span>
+      <label id="filtro-situacao-campo"><span class="sr">Situação</span>
         <select id="filtro-situacao">
-          <option value="">Todas</option>
+          <option value="">Todas as situações</option>
           <option value="watched">Assistido</option>
           <option value="watching">Assistindo</option>
           <option value="planned">Quero ver</option>
         </select>
       </label>
-      <label class="campo">
-        <span>Ordenar por</span>
+      <label><span class="sr">Ordenar por</span>
         <select id="filtro-ordem">
-          <option value="recent">Adicionados recentemente</option>
+          <option value="recent">Mais recentes</option>
           <option value="watchedOn">Vistos recentemente</option>
           <option value="title">Título (A–Z)</option>
           <option value="rating">Maior nota</option>
           <option value="year">Ano de lançamento</option>
         </select>
       </label>
+      <div class="alternar-vista" role="group" aria-label="Exibição">
+        <button type="button" class="botao-icone" id="vista-grade" aria-label="Exibir em grade" aria-pressed="true"><svg aria-hidden="true"><use href="#i-grade"/></svg></button>
+        <button type="button" class="botao-icone" id="vista-lista" aria-label="Exibir em lista" aria-pressed="false"><svg aria-hidden="true"><use href="#i-lista"/></svg></button>
+      </div>
     </section>
 
-    <section aria-label="Títulos">
-      <p class="contagem" id="contagem" aria-live="polite"></p>
-      <ul class="lista" id="lista"></ul>
-      <div class="vazio" id="vazio" hidden>
-        <p id="vazio-texto"></p>
-        <button type="button" class="botao" id="vazio-acao"></button>
+    <ul class="grade" id="lista"></ul>
+
+    <div class="vazio" id="vazio" hidden>
+      <p id="vazio-texto"></p>
+      <button type="button" class="botao" id="vazio-acao"></button>
+    </div>
+
+    <nav class="paginacao" id="paginacao" aria-label="Páginas">
+      <p id="paginacao-texto"></p>
+      <div class="paginacao-botoes" id="paginacao-botoes"></div>
+    </nav>
+
+    <section class="metricas" aria-label="Resumo">
+      <div class="metrica">
+        <div><p class="metrica-rotulo">Média geral das avaliações</p><p class="metrica-valor metrica-ambar"><span id="metrica-media"></span> <small>/ 5 estrelas</small></p></div>
+        <span class="metrica-icone"><svg aria-hidden="true"><use href="#i-estrela"/></svg></span>
+      </div>
+      <div class="metrica">
+        <div><p class="metrica-rotulo">Na sua fila</p><p class="metrica-valor"><span id="metrica-fila"></span> <small id="metrica-fila-detalhe"></small></p></div>
+        <span class="metrica-icone"><svg aria-hidden="true"><use href="#i-relogio"/></svg></span>
+      </div>
+      <div class="metrica">
+        <div><p class="metrica-rotulo">Gênero predileto</p><p class="metrica-valor metrica-texto" id="metrica-genero"></p><p class="metrica-apoio" id="metrica-genero-detalhe"></p></div>
+        <span class="metrica-icone"><svg aria-hidden="true"><use href="#i-chama"/></svg></span>
       </div>
     </section>
   </main>
 
-  <footer class="rodape" id="rodape" hidden>
-    <div>
-      <h2>Seus dados</h2>
-      <p>Sua lista fica salva no banco de dados e acompanha a sua conta em qualquer aparelho. Exporte um backup de vez em quando para ter uma cópia sua.</p>
+  <main class="detalhe" id="tela-titulo" hidden>
+    <div class="detalhe-fundo"><img id="det-fundo" alt="" hidden></div>
+    <div class="pagina detalhe-conteudo">
+      <a class="botao botao-fantasma botao-voltar" href="#/"><svg aria-hidden="true"><use href="#i-voltar"/></svg>Voltar à Biblioteca</a>
+
+      <div class="detalhe-principal">
+        <aside class="detalhe-lateral">
+          <div class="detalhe-poster" id="det-poster"></div>
+          <div class="painel">
+            <p class="rotulo-pequeno" id="status-rotulo">Status na Claquete</p>
+            <div class="segmentado" id="det-status" role="group" aria-labelledby="status-rotulo">
+              <button type="button" data-status="planned" aria-pressed="false">Quero ver</button>
+              <button type="button" data-status="watching" aria-pressed="false">Vendo</button>
+              <button type="button" data-status="watched" aria-pressed="false">Visto</button>
+            </div>
+          </div>
+        </aside>
+
+        <div class="detalhe-info">
+          <div class="etiquetas">
+            <span class="etiqueta etiqueta-ambar" id="det-tipo"></span>
+            <span class="etiqueta" id="det-ano" hidden></span>
+            <span class="etiqueta" id="det-duracao" hidden></span>
+            <span class="etiqueta" id="det-voto" hidden></span>
+          </div>
+          <h1 id="det-titulo"></h1>
+          <p class="detalhe-original" id="det-original" hidden></p>
+          <div class="generos" id="det-generos"></div>
+
+          <section class="painel" id="det-sinopse-painel">
+            <h2 class="rotulo-ambar">Sinopse da obra</h2>
+            <p class="detalhe-sinopse" id="det-sinopse"></p>
+            <button type="button" class="botao" id="det-vincular" hidden>Buscar dados no TMDB</button>
+          </section>
+
+          <div class="creditos" id="det-creditos" hidden>
+            <div class="painel"><p class="rotulo-pequeno" id="det-direcao-rotulo"></p><p class="credito-nome" id="det-direcao"></p></div>
+            <div class="painel"><p class="rotulo-pequeno">Elenco</p><p class="credito-nome" id="det-elenco"></p></div>
+          </div>
+        </div>
+      </div>
+
+      <form class="painel avaliacao" id="det-form" novalidate>
+        <div class="avaliacao-topo">
+          <div>
+            <h2>Sua avaliação e anotações</h2>
+            <p>Registre suas impressões para o catálogo pessoal.</p>
+          </div>
+          <div class="classificacao" id="det-nota-bloco">
+            <div>
+              <p class="rotulo-pequeno" id="nota-rotulo">Classificação pessoal</p>
+              <p class="classificacao-valor"><span id="nota-valor">–</span> <small>/ 5</small></p>
+            </div>
+            <div class="nota-controle">
+              <div class="estrelas estrelas-seletor" id="seletor-nota" role="slider" tabindex="0" aria-labelledby="nota-rotulo" aria-valuemin="0" aria-valuemax="5">
+                <span class="estrelas-cheias" id="seletor-nota-cheias"></span>
+              </div>
+              <button type="button" class="botao-texto" id="limpar-nota" hidden>Limpar</button>
+            </div>
+          </div>
+        </div>
+
+        <p class="erro" id="det-erro" role="alert" hidden></p>
+
+        <div class="avaliacao-campos">
+          <label class="campo avaliacao-notas">
+            <span>Seu comentário e anotações</span>
+            <textarea id="det-notas" rows="4" maxlength="2000"></textarea>
+          </label>
+          <div class="avaliacao-lado">
+            <label class="campo" id="det-data-campo">
+              <span>Assistido em</span>
+              <input type="date" id="det-data">
+            </label>
+            <div class="linha" id="det-progresso-campos">
+              <label class="campo"><span>Temporada</span><input type="number" id="det-temporada" min="0" inputmode="numeric"></label>
+              <label class="campo"><span>Último episódio</span><input type="number" id="det-episodio" min="0" inputmode="numeric"></label>
+            </div>
+          </div>
+        </div>
+
+        <div class="avaliacao-rodape">
+          <div class="avaliacao-secundarias">
+            <button type="button" class="botao-perigo" id="det-remover"><svg aria-hidden="true"><use href="#i-lixeira"/></svg>Remover da biblioteca</button>
+            <button type="button" class="botao-texto" id="det-editar">Editar dados do título</button>
+          </div>
+          <button type="submit" class="botao botao-primario" id="det-salvar">Salvar avaliação</button>
+        </div>
+      </form>
+
+      <section class="progresso" id="det-progresso" hidden>
+        <div class="progresso-topo">
+          <div>
+            <h2>Progresso da série</h2>
+            <p id="det-progresso-texto"></p>
+          </div>
+          <button type="button" class="botao" id="det-mais-um"><svg aria-hidden="true"><use href="#i-mais"/></svg>1 episódio</button>
+        </div>
+        <div class="barra" id="det-barra" hidden><span id="det-barra-valor"></span></div>
+        <p class="progresso-apoio" id="det-barra-texto" hidden></p>
+      </section>
     </div>
-    <div class="rodape-acoes">
-      <button type="button" class="botao" id="botao-exportar">Exportar backup</button>
-      <button type="button" class="botao" id="botao-importar">Importar backup</button>
-      <input type="file" id="arquivo-importar" accept="application/json,.json" hidden>
+  </main>
+
+  <footer class="rodape" id="rodape" hidden>
+    <div class="rodape-linha">
+      <p class="rodape-contagem" id="rodape-contagem"></p>
+      <div class="rodape-acoes">
+        <button type="button" class="botao-texto" id="botao-exportar">Exportar backup</button>
+        <button type="button" class="botao-texto" id="botao-importar">Importar backup</button>
+        <input type="file" id="arquivo-importar" accept="application/json,.json" hidden>
+      </div>
     </div>
     <div class="credito">
       <a href="https://www.themoviedb.org/" rel="noopener" target="_blank"><img src="img/tmdb.svg" alt="TMDB" width="80" height="12"></a>
@@ -119,92 +296,70 @@
     </div>
   </footer>
 
-  <dialog class="dialogo" id="dialogo" aria-labelledby="dialogo-titulo">
-    <form id="formulario" novalidate>
-      <h2 id="dialogo-titulo">Adicionar título</h2>
-      <p class="erro" id="formulario-erro" role="alert" hidden></p>
-
-      <label class="campo">
-        <span>Título</span>
-        <input type="text" name="title" maxlength="200" required autocomplete="off" placeholder="Digite para buscar o filme ou a série" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes">
-      </label>
-      <p class="sugestoes-estado" id="sugestoes-estado" role="status" hidden></p>
-      <ul class="sugestoes" id="sugestoes" role="listbox" aria-label="Títulos encontrados" hidden></ul>
-      <div class="poster-escolhido" id="poster-escolhido" hidden>
-        <img id="poster-escolhido-img" alt="" width="34" height="51">
-        <span>Imagem do título</span>
-        <button type="button" class="botao-texto" id="remover-poster">Remover</button>
+  <dialog class="modal" id="dialogo" aria-labelledby="dialogo-titulo">
+    <div class="modal-topo">
+      <span class="modal-icone"><svg aria-hidden="true"><use href="#i-claquete"/></svg></span>
+      <div>
+        <h2 id="dialogo-titulo">Adicionar à Claquete</h2>
+        <p id="dialogo-apoio">Busque pelo nome do filme ou série para registrar na sua coleção pessoal</p>
       </div>
+      <button type="button" class="botao-icone" id="dialogo-fechar" aria-label="Fechar"><svg aria-hidden="true"><use href="#i-fechar"/></svg></button>
+    </div>
 
-      <div class="linha">
-        <label class="campo">
-          <span>Tipo</span>
-          <select name="type">
-            <option value="movie">Filme</option>
-            <option value="series">Série</option>
-          </select>
-        </label>
-        <label class="campo">
-          <span>Situação</span>
-          <select name="status">
-            <option value="watched">Assistido</option>
-            <option value="watching">Assistindo</option>
-            <option value="planned">Quero ver</option>
-          </select>
-        </label>
-      </div>
+    <label class="modal-busca">
+      <svg aria-hidden="true"><use href="#i-busca"/></svg>
+      <span class="sr">Buscar filme ou série</span>
+      <input type="search" id="modal-busca" placeholder="Digite o nome do filme ou da série" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="sugestoes">
+      <kbd>Esc para fechar</kbd>
+    </label>
 
-      <div class="linha">
-        <label class="campo">
-          <span>Ano de lançamento</span>
-          <input type="number" name="year" inputmode="numeric" placeholder="Opcional">
-        </label>
-      </div>
-
-      <div class="linha" data-somente="series">
-        <label class="campo">
-          <span>Temporada</span>
-          <input type="number" name="season" min="0" inputmode="numeric" placeholder="Opcional">
-        </label>
-        <label class="campo">
-          <span>Último episódio visto</span>
-          <input type="number" name="episode" min="0" inputmode="numeric" placeholder="Opcional">
-        </label>
-      </div>
-
-      <div class="linha-avaliacao" data-somente="watched">
-        <label class="campo">
-          <span>Visto em</span>
-          <input type="date" name="watchedOn">
-        </label>
-        <div class="campo">
-          <span id="nota-rotulo">Nota</span>
-          <div class="nota-controle">
-            <div class="estrelas estrelas-seletor" id="seletor-nota" role="slider" tabindex="0" aria-labelledby="nota-rotulo" aria-valuemin="0" aria-valuemax="5">
-              <span class="estrelas-cheias" id="seletor-nota-cheias"></span>
-            </div>
-            <span class="nota-valor" id="nota-valor" aria-hidden="true"></span>
-            <button type="button" class="botao-texto" id="limpar-nota" hidden>Limpar</button>
-          </div>
-          <input type="hidden" name="rating">
+    <div class="modal-corpo" id="modal-corpo">
+      <div class="modal-coluna">
+        <div class="modal-resultados-topo">
+          <span id="modal-resultados-rotulo">Resultados</span>
+          <span class="modal-fonte">TMDB</span>
         </div>
+        <p class="modal-estado" id="sugestoes-estado" role="status"></p>
+        <ul class="sugestoes" id="sugestoes" role="listbox" aria-label="Títulos encontrados"></ul>
+        <button type="button" class="botao-texto" id="modal-manual-abrir">Não achou? Preencher manualmente</button>
       </div>
 
-      <label class="campo">
-        <span>Gêneros</span>
-        <input type="text" name="genres" placeholder="Separados por vírgula: drama, suspense" autocomplete="off">
-      </label>
-
-      <label class="campo">
-        <span>Anotações</span>
-        <textarea name="notes" rows="3" maxlength="2000"></textarea>
-      </label>
-
-      <div class="dialogo-acoes">
-        <button type="button" class="botao" id="botao-cancelar">Cancelar</button>
-        <button type="submit" class="botao botao-primario">Salvar</button>
+      <div class="modal-previa" id="modal-previa" hidden>
+        <div class="previa-topo">
+          <div class="previa-poster" id="previa-poster"></div>
+          <div class="previa-dados">
+            <div class="etiquetas" id="previa-etiquetas"></div>
+            <h3 id="previa-titulo"></h3>
+            <p class="detalhe-original" id="previa-original" hidden></p>
+            <div class="generos" id="previa-generos"></div>
+          </div>
+        </div>
+        <p class="previa-sinopse" id="previa-sinopse"></p>
+        <p class="previa-credito" id="previa-credito" hidden></p>
       </div>
-    </form>
+
+      <form class="modal-manual" id="modal-manual" novalidate hidden>
+        <h3>Preencher manualmente</h3>
+        <p class="erro" id="manual-erro" role="alert" hidden></p>
+        <label class="campo"><span>Título</span><input type="text" id="manual-titulo" maxlength="200" autocomplete="off"></label>
+        <div class="linha">
+          <label class="campo"><span>Tipo</span><select id="manual-tipo"><option value="movie">Filme</option><option value="series">Série</option></select></label>
+          <label class="campo"><span>Ano</span><input type="number" id="manual-ano" inputmode="numeric"></label>
+        </div>
+        <label class="campo"><span>Gêneros</span><input type="text" id="manual-generos" placeholder="Drama, suspense" autocomplete="off"></label>
+        <button type="button" class="botao-texto" id="manual-remover-poster" hidden>Remover imagem do título</button>
+      </form>
+    </div>
+
+    <p class="erro" id="modal-erro" role="alert" hidden></p>
+    <div class="modal-acoes" id="modal-acoes" hidden>
+      <button type="button" class="botao botao-primario" id="acao-visto"><svg aria-hidden="true"><use href="#i-check"/></svg><span>Já assisti <small>avaliar e registrar</small></span></button>
+      <button type="button" class="botao" id="acao-vendo" hidden><svg aria-hidden="true"><use href="#i-play"/></svg><span>Estou assistindo</span></button>
+      <button type="button" class="botao" id="acao-quero"><svg aria-hidden="true"><use href="#i-marcador"/></svg><span>Quero assistir</span></button>
+      <button type="button" class="botao botao-primario" id="acao-usar" hidden>Salvar dados</button>
+      <a class="botao" id="acao-abrir" hidden>Já está na biblioteca: abrir</a>
+    </div>
+    <p class="modal-recentes" id="modal-recentes" hidden></p>
   </dialog>
 
   <div class="mensagem" id="mensagem" role="status" hidden></div>
