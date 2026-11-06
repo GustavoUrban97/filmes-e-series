@@ -187,6 +187,8 @@
 
   function aplicarRota() {
     if (!idUsuarioAtual || !listaCarregada) return;
+    /* Trocar de tela antes de a rolagem voltar cancela a volta. */
+    if (location.hash !== origemDetalhe) rolagemVolta = null;
     var rota = rotaAtual();
     var navegacao = {
       biblioteca: el('nav-biblioteca'),
@@ -208,7 +210,7 @@
       /* As sugestões chegam depois: a rolagem só pode voltar com a lista desenhada. */
       carregarRecomendacoes().then(restaurarRolagem);
     } else if (rota.nome === 'diario') {
-      diarioLimite = DIARIO_POR_VEZ;
+      if (rolagemVolta === null) diarioLimite = DIARIO_POR_VEZ;
       mostrarTela('diario');
       renderizarDiario();
       window.scrollTo(0, 0);
@@ -242,7 +244,8 @@
 
   function voltarDoDetalhe() {
     rolagemVolta = rolagemOrigem;
-    location.hash = origemDetalhe;
+    /* Substitui o título no histórico: o Voltar do navegador não reabre o que acabou de ser salvo. */
+    location.replace(origemDetalhe);
   }
 
   function restaurarRolagem() {
@@ -585,7 +588,22 @@
     return { season: numero, episode: episodio, runtime: duracao };
   }
 
+  /* O mesmo título pode ter dois botões na tela: só um clique por vez conta. */
+  var titulosMarcando = {};
+
   async function marcarEpisodio(item, botao) {
+    if (titulosMarcando[item.id]) return;
+    titulosMarcando[item.id] = true;
+    try {
+      await gravarProximoEpisodio(item, botao);
+    } finally {
+      delete titulosMarcando[item.id];
+    }
+  }
+
+  async function gravarProximoEpisodio(item, botao) {
+    /* Calcula antes de esperar: outro +1 pode redesenhar a lista e tirar o botão da página. */
+    var regiao = botao.closest('#continuar') ? el('continuar') : lista;
     var atual = Store.obter(item.id);
     botao.disabled = true;
     var proximo = await proximoEpisodio(atual);
@@ -610,7 +628,6 @@
       renderizarProgresso(resultado.item);
       renderizarEpisodios(resultado.item, proximo.season);
     } else {
-      var regiao = botao.closest('#continuar') ? el('continuar') : lista;
       renderizarBiblioteca();
       /* A lista é redesenhada: devolve o foco ao botão para quem usa o teclado. */
       var novoBotao = regiao.querySelector('[data-mais-um="' + item.id + '"]');
@@ -1001,13 +1018,21 @@
       episode: el('det-episodio').value
     }));
     botao.disabled = false;
+    /* Com a rede lenta, a pessoa pode já estar em outra tela: o resultado não deve tirá-la de lá. */
+    var rota = rotaAtual();
+    var aindaAqui = rota.nome === 'titulo' && rota.id === item.id;
     if (resultado.erro) {
+      if (!aindaAqui) {
+        avisar(resultado.erro);
+        return;
+      }
       el('det-erro').textContent = resultado.erro;
       el('det-erro').hidden = false;
       return;
     }
-    el('det-erro').hidden = true;
     avisar('Salvo: ' + resultado.item.title);
+    if (!aindaAqui) return;
+    el('det-erro').hidden = true;
     voltarDoDetalhe();
   }
 

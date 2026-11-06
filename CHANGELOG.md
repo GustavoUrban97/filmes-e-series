@@ -1,5 +1,14 @@
 # Histórico de mudanças
 
+## 7.1.1 - 2026-11-06
+
+- O Diário volta ao mesmo ponto, mantendo as sessões já carregadas
+- Com a rede lenta, salvar não tira mais você de outra tela
+- A volta de **Para você** é cancelada se você trocar de tela durante o carregamento
+- Um clique só conta quando há dois botões **+1 episódio** do mesmo título
+- O foco do teclado fica em **Continue assistindo** ao marcar episódios em sequência
+- O Voltar do navegador não reabre o título recém-salvo
+
 ## 7.1.0 - 2026-11-06
 
 - Salvar a avaliação volta à tela de onde você veio, no mesmo ponto da página
